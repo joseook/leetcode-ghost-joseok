@@ -8,13 +8,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     const isLinux = window.electron?.isLinux || false;
     const isMac = window.electron?.isMac || false;
     const isWSL = window.electron?.isWSL || false;
+    const appVersion = window.electron?.appVersion || '1.0.0';
 
     // Atualizar informações do sistema na barra de status
-    updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL);
+    updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion);
 
     // Mostra informações da plataforma nos logs
     document.getElementById("log-content").innerHTML += '<br> [SYSTEM] sistema iniciado';
     document.getElementById("log-content").innerHTML += `<br> [SYSTEM] plataforma detectada: ${platform}`;
+    document.getElementById("log-content").innerHTML += `<br> [SYSTEM] versão: ${appVersion}`;
     document.getElementById("log-content").innerHTML += '<br> [APP] aguardando screenshot';
     document.getElementById("log-content").innerHTML += '<br> [HELPER] você pode apertar ctrl+shift+1 para tirar o primeiro screenshot';
 
@@ -43,7 +45,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Função para atualizar informações do sistema na barra de status
-function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL) {
+function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion) {
     const nodeVersionElement = document.getElementById('node-version');
     if (nodeVersionElement) {
         let platformDisplay = '';
@@ -55,6 +57,12 @@ function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL) {
         else platformDisplay = platform;
 
         nodeVersionElement.textContent = platformDisplay;
+    }
+
+    // Atualizar a versão do aplicativo na barra de status
+    const versionElement = document.querySelector('.status-bar .status-item:first-child .status-value');
+    if (versionElement) {
+        versionElement.textContent = `Ghost v${appVersion}`;
     }
 }
 
@@ -136,7 +144,8 @@ window.electron?.onCheckGhostMode?.(async (_event) => {
             ghostStatus.isWindows,
             ghostStatus.isLinux,
             ghostStatus.isMac,
-            window.electron?.isWSL || false
+            window.electron?.isWSL || false,
+            window.electron?.appVersion || '1.0.0'
         );
 
         // Verificar vulnerabilidades específicas da plataforma

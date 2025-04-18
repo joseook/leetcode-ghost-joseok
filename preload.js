@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const { version } = require('./package.json');
 
 // Detectar ambiente WSL
 function isWSLEnvironment() {
@@ -20,6 +21,7 @@ function isWSLEnvironment() {
 contextBridge.exposeInMainWorld('electron', {
   // Verificação de plataforma
   platform: process.platform,
+  appVersion: version,
   isWSL: isWSLEnvironment(),
   isWindows: process.platform === 'win32',
   isLinux: process.platform === 'linux',

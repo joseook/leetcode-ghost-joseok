@@ -213,6 +213,14 @@ function applyAdvancedGhostMode(mainWindow) {
       // Passar diretamente o handle para a função
       const result = windowsSetWindowAttributes(hwnd);
 
+      // No Windows, garantir que a janela está realmente em modo ghost
+      // após retornar da minimização aplicando algumas configurações adicionais
+      mainWindow.setContentProtection(true);
+      mainWindow.setAlwaysOnTop(true, 'screen-saver');
+
+      // Garantir que ele não apareça na barra de tarefas após restauração
+      mainWindow.setSkipTaskbar(true);
+
       console.log('Modo ghost avançado aplicado:', result);
       return result;
     } catch (error) {
@@ -226,6 +234,7 @@ function applyAdvancedGhostMode(mainWindow) {
       mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
       mainWindow.setOpacity(0.99); // Pequena modificação na opacidade
       mainWindow.setContentProtection(true);
+      mainWindow.setSkipTaskbar(true);
 
       // Configuração para evitar captura no macOS
       mainWindow.setWindowButtonVisibility(false);
@@ -242,6 +251,7 @@ function applyAdvancedGhostMode(mainWindow) {
     console.log('Executando no WSL, aplicando modo ghost básico');
     mainWindow.setContentProtection(true);
     mainWindow.setSkipTaskbar(true);
+    mainWindow.setAlwaysOnTop(true, 'screen-saver');
     return true;
   } else if (isLinux) {
     // No Linux, usamos técnicas adicionais
@@ -292,6 +302,27 @@ function createMainWindow() {
   mainWindow.setContentProtection(true);
   mainWindow.loadFile('index.html');
 
+  // Adicionar eventos para reforçar o modo ghost quando a janela é restaurada
+  mainWindow.on('restore', () => {
+    // Reaplicar o modo ghost quando a janela é restaurada
+    const ghostModeEnabled = settings.get('ghostMode');
+    if (ghostModeEnabled) {
+      setTimeout(() => {
+        applyAdvancedGhostMode(mainWindow);
+      }, 500); // Pequeno atraso para garantir que a janela foi completamente restaurada
+    }
+  });
+
+  mainWindow.on('show', () => {
+    // Reaplicar o modo ghost quando a janela é mostrada
+    const ghostModeEnabled = settings.get('ghostMode');
+    if (ghostModeEnabled) {
+      setTimeout(() => {
+        applyAdvancedGhostMode(mainWindow);
+      }, 500); // Pequeno atraso para garantir que a janela foi completamente mostrada
+    }
+  });
+
   // Registrar atalhos globais
   globalShortcut.register('Control+shift+1', () => {
     if (mainWindow) mainWindow.webContents.send('trigger-screenshot');
@@ -322,7 +353,16 @@ function createMainWindow() {
   });
 
   globalShortcut.register('Control+shift+s', () => {
-    if (mainWindow) mainWindow.show();
+    if (mainWindow) {
+      mainWindow.show();
+      // Reforçar o modo ghost quando mostramos a janela explicitamente
+      const ghostModeEnabled = settings.get('ghostMode');
+      if (ghostModeEnabled) {
+        setTimeout(() => {
+          applyAdvancedGhostMode(mainWindow);
+        }, 500);
+      }
+    }
   });
 
   // Atalho para fechar o aplicativo
@@ -452,6 +492,25 @@ app.whenReady().then(async () => {
 
   // Aplicar configuração inicial (incluindo modo ghost)
   applyInitialConfiguration(mainWindow);
+
+  // Handlers para IPC de controle de janela
+  ipcMain.on('minimize-window', () => {
+    if (mainWindow) mainWindow.minimize();
+  });
+
+  ipcMain.on('maximize-window', () => {
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+  });
+
+  ipcMain.on('close-window', () => {
+    if (mainWindow) mainWindow.close();
+  });
 
   // Quando a janela principal estiver pronta, fechar o splash
   mainWindow.webContents.once('did-finish-load', () => {
@@ -756,28 +815,5 @@ ipcMain.handle('remove-screenshot', async (event, screenshotNumber) => {
   } catch (error) {
     console.error(`Erro ao remover screenshot ${screenshotNumber}:`, error);
     throw error;
-  }
-});
-
-// Handlers para os controles da janela
-ipcMain.on('minimize-window', () => {
-  if (mainWindow) {
-    mainWindow.minimize();
-  }
-});
-
-ipcMain.on('maximize-window', () => {
-  if (mainWindow) {
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
-    }
-  }
-});
-
-ipcMain.on('close-window', () => {
-  if (mainWindow) {
-    mainWindow.close();
   }
 });
