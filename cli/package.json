@@ -1,0 +1,42 @@
+{
+  "name": "leetcode-joseok",
+  "version": "1.3.0",
+  "description": "Command-line interface for LeetCode Ghost Window",
+  "main": "index.js",
+  "bin": {
+    "leet-joseok": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node ./bin/index.js",
+    "build": "echo \"No build step required\" && exit 0"
+  },
+  "keywords": [
+    "leetcode",
+    "ghost",
+    "window",
+    "cli",
+    "invisible",
+    "leetcode-ghost-window"
+  ],
+  "author": "LeetCode Ghost Window Team",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "conf": "^10.2.0",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/leetcode-ghost-window.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/leetcode-ghost-window/issues"
+  },
+  "homepage": "https://github.com/your-username/leetcode-ghost-window#readme"
+}

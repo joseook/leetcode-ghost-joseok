@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>LeetCode Ghost</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      user-select: none;
+    }
+
+    body,
+    html {
+      height: 100%;
+      background-color: transparent;
+      color: white;
+      overflow: hidden;
+    }
+
+    .splash-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: rgba(15, 15, 16, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .icon {
+      width: 100px;
+      height: 100px;
+      background-color: #0fba81;
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 50px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #0fba81, #0fb0ba);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+
+    .author {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 30px;
+    }
+
+    .loading {
+      position: relative;
+      width: 200px;
+      height: 6px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 40%;
+      background-color: #0fba81;
+      border-radius: 3px;
+      animation: loading 2s infinite ease-in-out;
+    }
+
+    @keyframes loading {
+      0% {
+        left: -40%;
+      }
+
+      50% {
+        left: 100%;
+      }
+
+      100% {
+        left: -40%;
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 0.8;
+        transform: scale(0.98);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      100% {
+        opacity: 0.8;
+        transform: scale(0.98);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="splash-container">
+    <div class="icon">G</div>
+    <div class="title">LeetCode Ghost</div>
+    <div class="author">by Joseok</div>
+    <div class="loading">
+      <div class="progress-bar"></div>
+    </div>
+  </div>
+
+  <script>
+    // Configurar eventos para esconder a tela de splash
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        window.close();
+      }
+    });
+
+    // Atualizar o status do carregamento
+    const progressBar = document.querySelector('.progress-bar');
+    let progress = 0;
+
+    function updateProgress() {
+      progress += 1;
+      if (progress > 100) {
+        progress = 100;
+      }
+    }
+
+    // Simular progresso de carregamento
+    setInterval(updateProgress, 50);
+  </script>
+</body>
+
+</html>

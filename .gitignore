@@ -1,0 +1,17 @@
+# Build folders
+dist/
+dist/*
+out/
+build/
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.tar.gz
+
+# Dependencies
+node_modules/
+.env
+package-lock.json

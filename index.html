@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>LeetCode Ghost</title>
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/highlight.min.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Title bar para janela sem bordas -->
+    <div class="titlebar">
+      <div class="window-title">
+        <span class="ghost-tag">LeetCode Ghost</span>
+      </div>
+      <div class="window-controls">
+        <button id="minimize-btn" class="control-btn minimize">
+          <svg width="10" height="1" viewBox="0 0 10 1">
+            <path d="M0 0h10v1H0z" fill="currentColor" />
+          </svg>
+        </button>
+        <button id="close-btn" class="control-btn close">
+          <svg width="10" height="10" viewBox="0 0 10 10">
+            <path d="M1 1l8 8m0-8l-8 8" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="ghost-status-bar">
+        <div id="ghost-indicator" class="active" title="Modo Ghost Ativo">GHOST</div>
+      </div>
+
+      <div class="api-key-section">
+        <div class="input-group">
+          <input type="text" id="apikey" placeholder="OpenAI API Key: sk-..." />
+        </div>
+      </div>
+
+      <div class="screenshot-indicators">
+        <div id="screenshot-1-status" class="status-missing" title="Screenshot 1 pendente">1</div>
+        <div id="screenshot-2-status" class="status-missing" title="Screenshot 2 pendente">2</div>
+        <div id="screenshot-3-status" class="status-missing" title="Screenshot 3 pendente">3</div>
+      </div>
+
+      <div id="screenshot-previews" class="screenshot-previews">
+        <!-- Os previews dos screenshots serão inseridos aqui dinamicamente -->
+      </div>
+
+      <div class="response-panel">
+        <div id="response-text">Aguardando capturas...</div>
+      </div>
+
+      <div class="actions-panel">
+        <div class="actions-column">
+          <div class="action-label">Capturar</div>
+          <div class="shortcut"><span>Ctrl+Shift+1</span></div>
+          <div class="shortcut"><span>Ctrl+Shift+2</span></div>
+          <div class="shortcut"><span>Ctrl+Shift+3</span></div>
+        </div>
+        <div class="actions-column">
+          <div class="action-label">Processar</div>
+          <div class="shortcut"><span>Ctrl+Shift+A</span></div>
+          <div class="shortcut"><span>Ctrl+Shift+B</span></div>
+          <div class="shortcut"><span>Ctrl+Shift+C</span></div>
+        </div>
+        <div class="actions-column">
+          <div class="action-label">Janela</div>
+          <div class="shortcut"><span>Ctrl+Shift+H</span></div>
+          <div class="shortcut"><span>Ctrl+Shift+S</span></div>
+          <div class="shortcut"><span>Ctrl+Shift+Q</span></div>
+        </div>
+      </div>
+
+      <div class="logs-panel">
+        <div id="logs">
+          <div id="log-content"></div>
+        </div>
+        <div class="logs-overlay"></div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-item">
+        <span class="status-value">Ghost v1.2.0</span>
+      </div>
+      <div class="status-item platform">
+        <span class="status-label">Platform:</span>
+        <span class="status-value" id="node-version">Loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/highlight.min.js"></script>
+  <script src="assets/highlight.javascript.min.js"></script>
+  <script src="renderer.js"></script>
+</body>
+
+</html>
