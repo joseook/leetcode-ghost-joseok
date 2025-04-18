@@ -1,6 +1,6 @@
 {
   "name": "leetcode-joseok",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Command-line interface for LeetCode Ghost Window",
   "main": "index.js",
   "bin": {
