@@ -123,6 +123,9 @@ function triggerWorkflow(owner, repo, tag, token) {
       }
     };
 
+    log(`Endpoint: ${endpoint}`, colors.blue);
+    log(`Payload: ${data}`, colors.blue);
+
     const req = https.request(options, (res) => {
       let responseData = '';
 

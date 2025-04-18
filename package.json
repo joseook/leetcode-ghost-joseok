@@ -22,6 +22,7 @@
     "release:check": "node scripts/check-release.js",
     "release:build": "electron-builder -mwl --publish=always",
     "release:trigger": "node scripts/trigger-build.js",
+    "build:local": "node scripts/build-local.js",
     "cli:dev": "cd cli && npm run dev",
     "cli:build": "cd cli && npm run build",
     "cli:publish": "cd cli && npm publish"

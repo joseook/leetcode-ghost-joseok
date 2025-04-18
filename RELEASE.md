@@ -97,21 +97,23 @@ Se o workflow não for acionado automaticamente após criar uma tag, você pode 
 Se o GitHub Actions continuar falhando, você pode construir e fazer upload dos artefatos manualmente:
 
 ```bash
-# Para construir localmente para todas as plataformas
-npm run dist:all
+# Construir para a plataforma do seu sistema atual
+npm run build:local
 
-# Para construir apenas para sua plataforma atual
-npm run dist:win    # Windows
-npm run dist:mac    # macOS
-npm run dist:linux  # Linux
+# Ou para uma plataforma específica:
+npm run build:local win    # Windows
+npm run build:local mac    # macOS
+npm run build:local linux  # Linux
+npm run build:local all    # Todas as plataformas
 ```
 
-Depois, faça upload dos arquivos gerados na pasta `dist/` para a release no GitHub.
+Este comando constrói o aplicativo e mostra instruções para fazer upload dos arquivos gerados à release do GitHub.
 
 ### Erros comuns:
 
 - **404 Not Found**: O workflow não existe ou não está acessível
 - **403 Forbidden**: O token não tem permissões suficientes
+- **422 Unprocessable Entity**: Parâmetros incorretos sendo passados ao workflow
 - **Falha no upload**: Verifique se a configuração da publicação do electron-builder está correta
 
 ## Build Manual (Opcional)
