@@ -2,8 +2,6 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
 
@@ -18,6 +16,8 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
         
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -45,14 +45,65 @@ jobs:
             
       - name: Install dependencies
         run: pnpm install
-        
+      
+      # Configurar assinatura de código para macOS
+      - name: Prepare for app notarization (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p ~/private_keys/
+          echo '${{ secrets.api_key }}' > ~/private_keys/AuthKey_${{ secrets.api_key_id }}.p8 || true
+      
+      # Build/release Electron app
       - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          # macOS notarization
+          APPLE_API_KEY: ${{ secrets.api_key }}
+          APPLE_API_KEY_ID: ${{ secrets.api_key_id }}
+          APPLE_API_ISSUER: ${{ secrets.api_key_issuer_id }}
+          # GitHub token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            pnpm run dist:win
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            pnpm run dist:mac
+          else
+            pnpm run dist:linux
+          fi
+        shell: bash
           
-      # Only run for Windows to build the CLI distribution
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-artifacts
+          path: |
+            dist/*.exe
+            dist/*.msi
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+          
+      # Only run for one platform to attach assets to release
+      - name: Attach assets to GitHub Release
+        if: matrix.os == 'ubuntu-latest'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.exe
+            dist/*.msi
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Build CLI package
       - name: Build CLI package
-        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/v')
+        if: matrix.os == 'windows-latest'
         run: pnpm run cli:build 
