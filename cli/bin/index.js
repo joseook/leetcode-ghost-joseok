@@ -66,7 +66,7 @@ program
         console.log(chalk.yellow(`
 Please make sure you have the desktop application installed.
 If you haven't installed it yet, please visit:
-${chalk.cyan('https://github.com/your-username/leetcode-ghost-window/releases')}
+${chalk.cyan('https://github.com/joseook/leetcode-ghost-joseok/releases')}
         `));
         return;
       }
