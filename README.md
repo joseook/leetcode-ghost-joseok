@@ -13,6 +13,7 @@
   <a href="#platforms">Platforms</a> •
   <a href="#wsl-setup">WSL Setup</a> •
   <a href="#build-distribution">Build Distribution</a> •
+  <a href="#releases">Releases</a> •
   <a href="#license">License</a>
 </p>
 
@@ -277,96 +278,48 @@ To create distribution packages for different platforms, we use Electron Builder
 
 Before building the distribution packages, you should create proper application icons:
 
-1. **Required Icon Formats**:
-   - Windows: `.ico` file (256x256 pixels recommended)
-   - macOS: `.icns` file
-   - Linux: `.png` files in multiple sizes (16x16, 32x32, 48x48, 64x64, 128x128, 256x256)
+- **Windows**: `assets/images/icon.png` (256x256 or larger)
+- **macOS**: `assets/images/icon.icns`
+- **Linux**: `assets/images/icon.png` (256x256 or larger)
 
-2. **Creating Icons**:
-   - You can use tools like [Icon Maker](https://iconmaker.app/) or [Electron Icon Generator](https://www.npmjs.com/package/electron-icon-builder)
-   - For command line, install the icon generator:
-     ```bash
-     npm install -g electron-icon-builder
-     ```
-   - Then generate icons:
-     ```bash
-     electron-icon-builder --input=./source-icon.png --output=./assets
-     ```
-
-3. **Icon Placement**:
-   - Place Windows icons in `assets/images/icon.ico`
-   - Place macOS icons in `assets/images/icon.icns`
-   - Place Linux icons in `assets/images/` with proper sizes
-
-### Pre-requisites
-
-Make sure you have all dependencies installed:
+### Building Packages
 
 ```bash
-npm install
+# For all platforms
+npm run dist:all
+
+# For specific platforms
+npm run dist:win    # Windows
+npm run dist:mac    # macOS
+npm run dist:linux  # Linux
 ```
 
-### Building Distribution Packages
+The distribution packages will be created in the `dist/` directory.
 
-#### For All Platforms
+## Releases
+
+We use GitHub Actions to automate the build and release process. For detailed information about the release process, see [RELEASE.md](RELEASE.md).
+
+### Creating a New Release
+
+To create a new release:
+
 ```bash
-npm run dist
+# For patch version (bug fixes) - 1.4.0 -> 1.4.1
+npm run release:patch
+
+# For minor version (new features) - 1.4.0 -> 1.5.0
+npm run release:minor
+
+# For major version (breaking changes) - 1.4.0 -> 2.0.0
+npm run release:major
 ```
 
-#### For Specific Platforms
-
-**Windows:**
-```bash
-npm run dist:win
-```
-This will create:
-- `dist/leetcode-ghost-window-Setup-{version}.exe` - Windows installer
-- `dist/leetcode-ghost-window-{version}-win.zip` - Portable Windows application
-
-**macOS:**
-```bash
-npm run dist:mac
-```
-This will create:
-- `dist/LeetCode Ghost Window-{version}.dmg` - macOS disk image
-- `dist/LeetCode Ghost Window-{version}-mac.zip` - Compressed macOS application
-
-**Linux:**
-```bash
-npm run dist:linux
-```
-This will create:
-- `dist/leetcode-ghost-window-{version}.AppImage` - Cross-distro AppImage
-- `dist/leetcode-ghost-window_{version}_amd64.deb` - Debian/Ubuntu package
-- `dist/leetcode-ghost-window-{version}.x86_64.rpm` - Red Hat/Fedora package
-
-### Publishing to GitHub Releases
-
-To automatically publish your builds to GitHub Releases:
-
-1. Create a GitHub personal access token with `repo` scope
-2. Set the token as an environment variable:
-   ```bash
-   export GH_TOKEN=your_token_here
-   ```
-3. Run the release command:
-   ```bash
-   npm run dist -- -p always
-   ```
-
-### Code Signing
-
-For production builds, you should sign your application:
-
-#### Windows Code Signing
-```bash
-npm run dist:win -- --win --x64 --ia32 --c.win.certificateFile=/path/to/cert.pfx --c.win.certificatePassword=password
-```
-
-#### macOS Code Signing
-```bash
-npm run dist:mac -- --mac --c.mac.identity='Developer ID Application: Your Name (TEAMID)'
-```
+These commands will automatically:
+- Update the version in package.json
+- Create a git commit and tag
+- Push to GitHub
+- Trigger GitHub Actions to build and publish the release
 
 ## License
 

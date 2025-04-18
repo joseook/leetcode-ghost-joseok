@@ -15,6 +15,10 @@
     "dist:mac": "electron-builder --mac",
     "dist:linux": "electron-builder --linux",
     "dist:all": "electron-builder -mwl",
+    "release": "node scripts/release.js",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
     "cli:dev": "cd cli && npm run dev",
     "cli:build": "cd cli && npm run build",
     "cli:publish": "cd cli && npm publish"
