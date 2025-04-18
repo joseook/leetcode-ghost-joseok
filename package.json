@@ -14,6 +14,7 @@
     "dist:win": "electron-builder --win --x64 --ia32 --publish always --c.publish.provider=github",
     "dist:mac": "electron-builder --mac --x64 --arm64 --publish always --c.publish.provider=github",
     "dist:linux": "electron-builder --linux --x64 --publish always --c.publish.provider=github",
+    "dist:linux:appimage": "electron-builder --linux AppImage --x64 --publish never",
     "dist:all": "electron-builder -mwl --publish always --c.publish.provider=github",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js patch",
@@ -39,7 +40,10 @@
     "screen-capture",
     "streaming"
   ],
-  "author": "LeetCode Ghost Window Team",
+  "author": {
+    "name": "LeetCode Ghost Window Team",
+    "email": "leetcode.ghost@example.com"
+  },
   "license": "MIT",
   "devDependencies": {
     "electron": "^33.4.9",
@@ -86,7 +90,8 @@
         "deb",
         "rpm"
       ],
-      "category": "Development"
+      "category": "Development",
+      "maintainer": "LeetCode Ghost Window Team <info@joseok.xyz>"
     },
     "win": {
       "target": [

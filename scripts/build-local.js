@@ -79,10 +79,38 @@ function buildApp(platform) {
         command = 'pnpm run dist:mac --publish never';
         break;
       case 'linux':
-        command = 'pnpm run dist:linux --publish never';
+        // Para Linux, usar o comando que cria apenas AppImage para evitar problemas com maintainer
+        command = 'pnpm run dist:linux:appimage';
         break;
       case 'all':
-        command = 'pnpm run dist:all --publish never';
+        // Para build de todas as plataformas, não podemos garantir que funcionará pelo mantainer,
+        // então avisamos o usuário
+        log('\n⚠️ Aviso: Build para todas as plataformas pode falhar em sistemas Linux.', colors.yellow);
+        log('Tentando construir para cada plataforma individualmente...', colors.yellow);
+
+        // Tentando construir plataforma por plataforma
+        try {
+          log('\n=== Construindo para Windows ===', colors.blue);
+          execSync('pnpm run dist:win --publish never', { stdio: 'inherit' });
+        } catch (e) {
+          log('Falha ao construir para Windows. Continuando com outras plataformas...', colors.red);
+        }
+
+        try {
+          log('\n=== Construindo para macOS ===', colors.blue);
+          execSync('pnpm run dist:mac --publish never', { stdio: 'inherit' });
+        } catch (e) {
+          log('Falha ao construir para macOS. Continuando com outras plataformas...', colors.red);
+        }
+
+        try {
+          log('\n=== Construindo para Linux (AppImage) ===', colors.blue);
+          execSync('pnpm run dist:linux:appimage', { stdio: 'inherit' });
+          return true;
+        } catch (e) {
+          log('Falha ao construir para Linux.', colors.red);
+          return false;
+        }
         break;
       default:
         log(`Plataforma não suportada: ${platform}`, colors.red);
