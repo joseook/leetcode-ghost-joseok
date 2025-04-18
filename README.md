@@ -86,7 +86,7 @@ leet-joseok --version
 leet-joseok init
 ```
 
-The CLI provides an easy way to launch and interact with the LeetCode Ghost Window application from your terminal. For more information, see the [CLI documentation](https://leetcode-docs-web.vercel.app/cli).
+The CLI provides an easy way to launch and interact with the LeetCode Ghost Window application from your terminal. For more information, see the [CLI documentation](https://www.leetghost.online/cli).
 
 ## Usage
 
