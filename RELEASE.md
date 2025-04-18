@@ -66,17 +66,51 @@ Após o GitHub Actions terminar (geralmente leva 5-10 minutos):
 
 ## Solução de Problemas
 
-### Se os artefatos não aparecerem na release:
+### Se o workflow não for acionado automaticamente
+
+Se o workflow não for acionado automaticamente após criar uma tag, você pode acioná-lo manualmente:
+
+1. **Usando o script de trigger**:
+   ```bash
+   # Você precisará criar um token pessoal do GitHub com permissões "repo" e "workflow"
+   npm run release:trigger v1.4.2 seu_token_pessoal
+   ```
+
+2. **Através da interface do GitHub**:
+   - Acesse seu repositório no GitHub
+   - Vá para a aba "Actions"
+   - Selecione o workflow "Build and Release"
+   - Clique em "Run workflow"
+   - Escolha a branch "main" e informe a tag desejada
+
+### Se os artefatos não aparecerem na release
 
 1. Verifique se o workflow do GitHub Actions foi concluído com sucesso usando `npm run release:check`
 2. Acesse a página do GitHub Actions no seu repositório para ver detalhes dos logs de build
 3. Certifique-se de que o token GITHUB_TOKEN tem permissões suficientes para criar releases e fazer upload de artefatos
-4. Se tiver permissões de administrador, você pode manualmente fazer o upload dos artefatos:
-   - Execute uma das builds locais: `npm run dist:win`, `npm run dist:mac`, ou `npm run dist:linux`
-   - Faça upload manual dos arquivos da pasta `dist/` para a release no GitHub
+4. Verifique nas configurações do seu repositório se o GitHub Actions tem permissões de escrita:
+   - Vá para "Settings" > "Actions" > "General" 
+   - Em "Workflow permissions", certifique-se de que "Read and write permissions" está selecionado
+
+### Build Manual Local
+
+Se o GitHub Actions continuar falhando, você pode construir e fazer upload dos artefatos manualmente:
+
+```bash
+# Para construir localmente para todas as plataformas
+npm run dist:all
+
+# Para construir apenas para sua plataforma atual
+npm run dist:win    # Windows
+npm run dist:mac    # macOS
+npm run dist:linux  # Linux
+```
+
+Depois, faça upload dos arquivos gerados na pasta `dist/` para a release no GitHub.
 
 ### Erros comuns:
 
+- **404 Not Found**: O workflow não existe ou não está acessível
 - **403 Forbidden**: O token não tem permissões suficientes
 - **Falha no upload**: Verifique se a configuração da publicação do electron-builder está correta
 
