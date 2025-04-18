@@ -1,6 +1,6 @@
 {
   "name": "leetcode-ghost-window",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "An invisible window for LeetCode problem solving that stays hidden from recording/streaming applications",
   "main": "main.js",
   "scripts": {
