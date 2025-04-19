@@ -8,7 +8,6 @@ const { ChatGptHelper } = require('./src/ChatGptHelper');
 const { Utils } = require('./src/Utils');
 const Store = require('electron-store');
 
-// Inicializar o armazenamento de configurações
 const settings = new Store({
   name: 'ghost-settings',
   defaults: {
@@ -18,7 +17,6 @@ const settings = new Store({
   }
 });
 
-// Inicializar variáveis
 let tray = null;
 let mainWindow = null;
 let splashWindow = null;
@@ -27,25 +25,20 @@ const isWindows = process.platform === 'win32';
 const isLinux = process.platform === 'linux';
 const isMac = process.platform === 'darwin';
 
-// Verifica se a pasta de screenshots existe, se não, cria
 const screenshotsDir = path.join(__dirname, "screenshots");
 if (!fs.existsSync(screenshotsDir)) {
   fs.mkdirSync(screenshotsDir, { recursive: true });
 }
 
-// Verifica se a pasta de assets existe, se não, cria
 const assetsDir = path.join(__dirname, "assets", "images");
 if (!fs.existsSync(assetsDir)) {
   fs.mkdirSync(assetsDir, { recursive: true });
 }
 
-// Cria um ícone padrão caso não exista
 const iconPath = path.join(__dirname, 'assets', 'images', 'icon.png');
 if (!fs.existsSync(iconPath)) {
   try {
-    // Criar um ícone padrão simples usando nativeImage
     const size = 32;
-    // Usar PNG diretamente ao invés de SVG para melhor compatibilidade com WSL
     const emptyIcon = Buffer.from([
       137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82,
       0, 0, 0, 32, 0, 0, 0, 32, 8, 6, 0, 0, 0, 115, 122, 122,
@@ -69,7 +62,6 @@ if (!fs.existsSync(iconPath)) {
   }
 }
 
-// Função para criar a janela de splash
 function createSplashWindow() {
   const splash = new BrowserWindow({
     width: 400,
@@ -88,11 +80,9 @@ function createSplashWindow() {
   return splash;
 }
 
-// Verificar e instalar as dependências necessárias para o modo ghost
 function checkAndInstallDependencies() {
   return new Promise((resolve) => {
     if (isWindows) {
-      // No Windows, verificar se temos as dependências FFI instaladas
       const ffiPath = path.join(__dirname, 'node_modules', 'ffi-napi');
       if (!fs.existsSync(ffiPath)) {
         console.log('Instalando dependências FFI para o modo ghost no Windows...');
@@ -104,10 +94,8 @@ function checkAndInstallDependencies() {
         }
       }
     } else if (isLinux) {
-      // No Linux, verificamos e instalamos pacotes necessários para X11/Wayland
       console.log('Verificando dependências do Linux para modo ghost...');
       try {
-        // Dependências apenas para compilação, não para runtime
         exec('which xprop', (error) => {
           if (error) {
             console.log('xprop não encontrado, algumas funcionalidades ghost podem estar limitadas');
@@ -121,7 +109,6 @@ function checkAndInstallDependencies() {
   });
 }
 
-// Detectar se estamos rodando no WSL (Windows Subsystem for Linux)
 async function isRunningInWSL() {
   if (process.platform !== 'linux') return false;
 
@@ -135,21 +122,17 @@ async function isRunningInWSL() {
   }
 }
 
-// Configurar variáveis de ambiente para WSL
 function configureWSLEnvironment() {
   if (!isWSL) return;
 
-  // Verificar se já temos uma variável DISPLAY configurada
   if (process.env.DISPLAY) {
     console.log(`Usando DISPLAY existente: ${process.env.DISPLAY}`);
     return;
   }
 
   try {
-    // Tentar determinar o IP do host Windows
     let hostIp = '127.0.0.1';
     try {
-      // No WSL2, podemos tentar obter o IP do host Windows
       const wslHostIp = execSync('cat /etc/resolv.conf | grep nameserver | awk \'{print $2}\'', { encoding: 'utf8' }).trim();
       if (wslHostIp && wslHostIp.match(/^\d+\.\d+\.\d+\.\d+$/)) {
         hostIp = wslHostIp;
@@ -159,28 +142,23 @@ function configureWSLEnvironment() {
       console.log('Não foi possível determinar o IP do host WSL, usando localhost');
     }
 
-    // Configurar DISPLAY para apontar para o servidor X no Windows
-    // Tentamos várias opções comuns para DISPLAY
     const displayOptions = [
-      `${hostIp}:0.0`,  // WSL2 com X server no Windows
-      `:0`,            // WSL com X server no localhost
-      `:0.0`,          // Alternativa comum
-      `localhost:0.0`   // Outra alternativa
+      `${hostIp}:0.0`,
+      `:0`,
+      `:0.0`,
+      `localhost:0.0`
     ];
 
-    // Tentar cada opção de DISPLAY até encontrar uma que funcione
     let displayWorking = false;
     for (const display of displayOptions) {
       process.env.DISPLAY = display;
       try {
         console.log(`Tentando DISPLAY=${display}`);
-        // Tentar verificar se o display funciona
         execSync('xset q', { stdio: 'ignore' });
         console.log(`Configurado DISPLAY=${display} para suporte GUI no WSL`);
         displayWorking = true;
         break;
       } catch (error) {
-        // Continuar tentando
       }
     }
 
@@ -188,10 +166,8 @@ function configureWSLEnvironment() {
       console.log(`Não foi possível encontrar um DISPLAY funcional, usando ${process.env.DISPLAY}`);
     }
 
-    // Desabilitar aceleração de hardware no WSL para evitar problemas
     app.disableHardwareAcceleration();
 
-    // Adicionar flags específicas para WSL
     app.commandLine.appendSwitch('no-sandbox');
     console.log('Hardware acceleration desabilitada e modo no-sandbox ativado para WSL');
   } catch (error) {
@@ -201,24 +177,18 @@ function configureWSLEnvironment() {
 
 let isWSL = false;
 
-// Aplicar o modo ghost avançado no Windows/macOS/WSL
 function applyAdvancedGhostMode(mainWindow) {
   if (process.platform === 'win32') {
     try {
       const { windowsSetWindowAttributes } = require('./src/windowsGhostHelper');
 
-      // Obter o handle nativo da janela
       const hwnd = mainWindow.getNativeWindowHandle();
 
-      // Passar diretamente o handle para a função
       const result = windowsSetWindowAttributes(hwnd);
 
-      // No Windows, garantir que a janela está realmente em modo ghost
-      // após retornar da minimização aplicando algumas configurações adicionais
       mainWindow.setContentProtection(true);
       mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
-      // Garantir que ele não apareça na barra de tarefas após restauração
       mainWindow.setSkipTaskbar(true);
 
       console.log('Modo ghost avançado aplicado:', result);
@@ -228,15 +198,13 @@ function applyAdvancedGhostMode(mainWindow) {
       return false;
     }
   } else if (process.platform === 'darwin') {
-    // No macOS, usamos combinações de configurações específicas
     try {
       mainWindow.setAlwaysOnTop(true, 'modal-panel');
       mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-      mainWindow.setOpacity(0.99); // Pequena modificação na opacidade
+      mainWindow.setOpacity(0.99);
       mainWindow.setContentProtection(true);
       mainWindow.setSkipTaskbar(true);
 
-      // Configuração para evitar captura no macOS
       mainWindow.setWindowButtonVisibility(false);
 
       console.log('Modo ghost configurado para macOS');
@@ -247,24 +215,20 @@ function applyAdvancedGhostMode(mainWindow) {
       return false;
     }
   } else if (isWSL) {
-    // No WSL, aplicamos configurações básicas já que não temos acesso às APIs nativas do Windows
     console.log('Executando no WSL, aplicando modo ghost básico');
     mainWindow.setContentProtection(true);
     mainWindow.setSkipTaskbar(true);
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
     return true;
   } else if (isLinux) {
-    // No Linux, usamos técnicas adicionais
     try {
-      // Primeiro aplicamos as configurações básicas
       mainWindow.setSkipTaskbar(true);
       mainWindow.setAlwaysOnTop(true, 'pop-up-menu');
       mainWindow.setMenuBarVisibility(false);
       mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
       mainWindow.setContentProtection(true);
 
-      // Configurações avançadas para X11/Wayland
-      mainWindow.setOpacity(0.99); // A opacidade 0.99 ajuda com alguns compositors
+      mainWindow.setOpacity(0.99);
 
       console.log('Modo ghost configurado para Linux');
       return true;
@@ -277,14 +241,13 @@ function applyAdvancedGhostMode(mainWindow) {
   return false;
 }
 
-// Função para criar a janela principal
 function createMainWindow() {
   const mainWindow = new BrowserWindow({
     width: 400,
     height: 650,
     icon: iconPath,
-    frame: false, // Sem bordas para design minimalista
-    transparent: true, // Transparência para design moderno
+    frame: false,
+    transparent: true,
     backgroundThrottling: true,
     hasShadow: false,
     skipTaskbar: true,
@@ -292,53 +255,43 @@ function createMainWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
       webSecurity: false,
-      nodeIntegration: false, // keep false for security
+      nodeIntegration: false,
       enableRemoteModule: false,
       sandbox: false
     }
   });
 
-  // Ghost Window Configuration - básico
   mainWindow.setContentProtection(true);
   mainWindow.loadFile('index.html');
 
-  // Adicionar eventos para reforçar o modo ghost quando a janela é restaurada
   mainWindow.on('restore', () => {
-    // Reaplicar o modo ghost quando a janela é restaurada
     const ghostModeEnabled = settings.get('ghostMode');
     if (ghostModeEnabled) {
       setTimeout(() => {
         applyAdvancedGhostMode(mainWindow);
-      }, 500); // Pequeno atraso para garantir que a janela foi completamente restaurada
+      }, 500);
     }
   });
 
   mainWindow.on('show', () => {
-    // Reaplicar o modo ghost quando a janela é mostrada
     const ghostModeEnabled = settings.get('ghostMode');
     if (ghostModeEnabled) {
       setTimeout(() => {
         applyAdvancedGhostMode(mainWindow);
-      }, 500); // Pequeno atraso para garantir que a janela foi completamente mostrada
+      }, 500);
     }
   });
 
-  // Registrar atalhos globais adaptados para cada plataforma
   registerShortcuts(mainWindow);
 
-  // Debug mode - uncomment if needed
-  // mainWindow.webContents.openDevTools();
   mainWindow.setMenu(null);
 
   return mainWindow;
 }
 
-// Função para registrar atalhos de teclado de acordo com a plataforma
 function registerShortcuts(window) {
-  // Determinar qual modificador usar com base na plataforma
   const modKey = isMac ? 'Command' : 'Control';
 
-  // Atalhos para captura de tela
   globalShortcut.register(`${modKey}+shift+1`, () => {
     if (window) window.webContents.send('trigger-screenshot');
   });
@@ -351,7 +304,6 @@ function registerShortcuts(window) {
     if (window) window.webContents.send('trigger-screenshot3');
   });
 
-  // Atalhos para processamento de IA
   globalShortcut.register(`${modKey}+shift+a`, () => {
     if (window) window.webContents.send('trigger-ai1');
   });
@@ -364,7 +316,6 @@ function registerShortcuts(window) {
     if (window) window.webContents.send('trigger-ai3');
   });
 
-  // Atalhos para controle da janela
   globalShortcut.register(`${modKey}+shift+h`, () => {
     if (window) window.hide();
   });
@@ -372,7 +323,6 @@ function registerShortcuts(window) {
   globalShortcut.register(`${modKey}+shift+s`, () => {
     if (window) {
       window.show();
-      // Reforçar o modo ghost quando mostramos a janela explicitamente
       const ghostModeEnabled = settings.get('ghostMode');
       if (ghostModeEnabled) {
         setTimeout(() => {
@@ -382,14 +332,11 @@ function registerShortcuts(window) {
     }
   });
 
-  // Atalho para fechar o aplicativo
-  // No macOS, usar Command+Q que é a convenção da plataforma
   const quitShortcut = isMac ? 'Command+q' : `${modKey}+shift+q`;
   globalShortcut.register(quitShortcut, () => {
     app.quit();
   });
 
-  // Atalho para mover a janela
   globalShortcut.register(`${modKey}+shift+m`, () => {
     if (window) window.webContents.send('toggle-window-drag');
   });
@@ -397,9 +344,7 @@ function registerShortcuts(window) {
   console.log(`Atalhos registrados para plataforma: ${process.platform}`);
 }
 
-// Aplicar configurações iniciais
 function applyInitialConfiguration(mainWindow) {
-  // Aplicar configurações avançadas de modo ghost se estiver ativado
   const ghostModeEnabled = settings.get('ghostMode');
   if (ghostModeEnabled) {
     applyAdvancedGhostMode(mainWindow);
@@ -414,15 +359,12 @@ function applyInitialConfiguration(mainWindow) {
 
 function createTray() {
   try {
-    // Verificar se o tray já existe
     if (tray !== null) {
       return;
     }
 
-    // Criar um ícone vazio como fallback para garantir
     const emptyIcon = nativeImage.createEmpty();
 
-    // Tentar carregar o ícone do arquivo
     try {
       if (fs.existsSync(iconPath)) {
         const iconData = fs.readFileSync(iconPath);
@@ -470,45 +412,36 @@ function createTray() {
     console.log("Tray icon criado com sucesso");
   } catch (error) {
     console.error("Erro ao criar o tray icon:", error);
-    // Não deixar esse erro impedir a execução do aplicativo
   }
 }
 
-// Configurações de linha de comando para melhorar a captura e o modo ghost
 app.commandLine.appendSwitch('enable-usermedia-screen-capturing');
 app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 app.commandLine.appendSwitch('high-dpi-support', '1');
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
-// No Linux, podemos usar algumas flags adicionais
 if (isLinux) {
   app.commandLine.appendSwitch('disable-gpu-compositing');
   app.commandLine.appendSwitch('enable-transparent-visuals');
   app.commandLine.appendSwitch('disable-software-rasterizer');
-  app.disableHardwareAcceleration(); // Isso pode ajudar com alguns problemas de captura no Linux
+  app.disableHardwareAcceleration();
 }
 
 app.whenReady().then(async () => {
-  // Verificar se estamos no WSL
   isWSL = await isRunningInWSL();
   if (isWSL) {
     console.log('Detectado ambiente WSL - aplicando configurações específicas');
     configureWSLEnvironment();
   }
 
-  // Mostrar splash screen
   splashWindow = createSplashWindow();
 
-  // Verificar e instalar dependências
   await checkAndInstallDependencies();
 
-  // Criar a janela principal
   mainWindow = createMainWindow();
 
-  // Aplicar configuração inicial (incluindo modo ghost)
   applyInitialConfiguration(mainWindow);
 
-  // Handlers para IPC de controle de janela
   ipcMain.on('minimize-window', () => {
     if (mainWindow) mainWindow.minimize();
   });
@@ -527,7 +460,6 @@ app.whenReady().then(async () => {
     if (mainWindow) mainWindow.close();
   });
 
-  // Quando a janela principal estiver pronta, fechar o splash
   mainWindow.webContents.once('did-finish-load', () => {
     setTimeout(() => {
       if (splashWindow && !splashWindow.isDestroyed()) {
@@ -536,16 +468,14 @@ app.whenReady().then(async () => {
 
       mainWindow.show();
 
-      // Verificar se o modo ghost está funcionando após 5 segundos
       setTimeout(() => {
-        // Aplicar novamente caso necessário se o modo ghost estiver ativado
         const ghostModeEnabled = settings.get('ghostMode');
         if (ghostModeEnabled) {
           applyAdvancedGhostMode(mainWindow);
         }
         mainWindow.webContents.send('check-ghost-mode');
       }, 5000);
-    }, 1500); // Mostrar o splash por pelo menos 1.5 segundos
+    }, 1500);
   });
 
   app.on('activate', () => {
@@ -557,7 +487,6 @@ app.whenReady().then(async () => {
 });
 
 app.on('will-quit', () => {
-  // Limpar todos os atalhos registrados quando o app for fechado
   globalShortcut.unregisterAll();
 });
 
@@ -567,7 +496,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Handler para captura de tela
 ipcMain.handle('capture-screen', async () => {
   try {
     const primaryDisplay = screen.getPrimaryDisplay();
@@ -580,7 +508,6 @@ ipcMain.handle('capture-screen', async () => {
 
     const sources = await desktopCapturer.getSources(options);
 
-    // Tentar obter a tela primária
     const primarySource = sources.find((source) => source.display_id == primaryDisplay.id) || sources[0];
     const image = primarySource.thumbnail.toJPEG(100);
     const screenshotPath = path.join(__dirname, "screenshots", 'screenshot.png');
@@ -604,7 +531,6 @@ ipcMain.handle('capture-screen2', async () => {
 
     const sources = await desktopCapturer.getSources(options);
 
-    // Tentar obter a tela primária
     const primarySource = sources.find((source) => source.display_id == primaryDisplay.id) || sources[0];
     const image = primarySource.thumbnail.toJPEG(100);
     const screenshotPath = path.join(__dirname, "screenshots", 'screenshot2.png');
@@ -628,7 +554,6 @@ ipcMain.handle('capture-screen3', async () => {
 
     const sources = await desktopCapturer.getSources(options);
 
-    // Tentar obter a tela primária
     const primarySource = sources.find((source) => source.display_id == primaryDisplay.id) || sources[0];
     const image = primarySource.thumbnail.toJPEG(100);
     const screenshotPath = path.join(__dirname, "screenshots", 'screenshot3.png');
@@ -640,7 +565,6 @@ ipcMain.handle('capture-screen3', async () => {
   }
 });
 
-// Handler para verificar se o modo ghost está funcionando
 ipcMain.handle('test-ghost-mode', async () => {
   return {
     platform: process.platform,
@@ -667,18 +591,14 @@ ipcMain.handle('find-answer-using-screenshot', async (event, { quantityScreensho
   }
 });
 
-// Handler para seleção de área para screenshot
 ipcMain.handle('start-area-selection', async (event, screenshotNumber) => {
   try {
-    // Ocultar temporariamente a janela principal para capturar a tela
     if (mainWindow) {
       mainWindow.hide();
     }
 
-    // Aguardar um momento para garantir que a janela está oculta
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Captura direta da tela inteira em vez de seleção de área
     let result;
     if (isWindows) {
       result = await captureFullScreenWindows(screenshotNumber);
@@ -690,7 +610,6 @@ ipcMain.handle('start-area-selection', async (event, screenshotNumber) => {
       result = await captureGenericScreenArea(screenshotNumber);
     }
 
-    // Mostrar a janela principal novamente após a captura
     if (mainWindow) {
       mainWindow.show();
     }
@@ -699,7 +618,6 @@ ipcMain.handle('start-area-selection', async (event, screenshotNumber) => {
   } catch (error) {
     console.error("Erro ao capturar tela:", error);
 
-    // Mostrar a janela principal novamente em caso de erro
     if (mainWindow) {
       mainWindow.show();
     }
@@ -708,13 +626,10 @@ ipcMain.handle('start-area-selection', async (event, screenshotNumber) => {
   }
 });
 
-// Captura de tela inteira no Windows
 async function captureFullScreenWindows(screenshotNumber) {
   try {
-    // Caminho para o arquivo de saída
     const outputPath = path.join(__dirname, "screenshots", `screenshot${screenshotNumber > 1 ? screenshotNumber : ''}.png`);
 
-    // Usar diretamente o desktopCapturer do Electron para capturar a tela inteira
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.size;
 
@@ -730,10 +645,8 @@ async function captureFullScreenWindows(screenshotNumber) {
       throw new Error('Não foi possível encontrar a tela primária');
     }
 
-    // Capturar a imagem da tela
     const image = primarySource.thumbnail.toJPEG(100);
 
-    // Salvar a imagem no disco
     fs.writeFileSync(outputPath, image);
 
     console.log(`Screenshot ${screenshotNumber} capturado e salvo em: ${outputPath}`);
@@ -744,12 +657,10 @@ async function captureFullScreenWindows(screenshotNumber) {
   }
 }
 
-// Captura de tela inteira no Linux
 async function captureFullScreenLinux(screenshotNumber) {
   try {
     const outputPath = path.join(__dirname, "screenshots", `screenshot${screenshotNumber > 1 ? screenshotNumber : ''}.png`);
 
-    // Tentar usar comandos nativos do Linux primeiro
     try {
       execSync(`gnome-screenshot -f "${outputPath}"`, { timeout: 3000 });
       if (fs.existsSync(outputPath)) {
@@ -759,7 +670,6 @@ async function captureFullScreenLinux(screenshotNumber) {
       console.log("gnome-screenshot falhou, tentando método alternativo");
     }
 
-    // Fallback: usar desktopCapturer
     return await captureGenericScreenArea(screenshotNumber);
   } catch (error) {
     console.error("Erro ao capturar tela no Linux:", error);
@@ -767,12 +677,10 @@ async function captureFullScreenLinux(screenshotNumber) {
   }
 }
 
-// Captura de tela inteira no macOS
 async function captureFullScreenMac(screenshotNumber) {
   try {
     const outputPath = path.join(__dirname, "screenshots", `screenshot${screenshotNumber > 1 ? screenshotNumber : ''}.png`);
 
-    // Usar o utilitário nativo screencapture do macOS para tela inteira
     execSync(`screencapture "${outputPath}"`, { timeout: 3000 });
 
     if (fs.existsSync(outputPath)) {
@@ -782,17 +690,14 @@ async function captureFullScreenMac(screenshotNumber) {
     }
   } catch (error) {
     console.error("Erro ao capturar tela no macOS:", error);
-    // Fallback: usar desktopCapturer
     return await captureGenericScreenArea(screenshotNumber);
   }
 }
 
-// Método genérico de captura para qualquer plataforma
 async function captureGenericScreenArea(screenshotNumber) {
   try {
     const outputPath = path.join(__dirname, "screenshots", `screenshot${screenshotNumber > 1 ? screenshotNumber : ''}.png`);
 
-    // Capturar a tela inteira usando desktopCapturer
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.size;
 
@@ -813,12 +718,10 @@ async function captureGenericScreenArea(screenshotNumber) {
   }
 }
 
-// Handler para remover um screenshot
 ipcMain.handle('remove-screenshot', async (event, screenshotNumber) => {
   try {
     const screenshotPath = path.join(__dirname, "screenshots", `screenshot${screenshotNumber > 1 ? screenshotNumber : ''}.png`);
 
-    // Verificar se o arquivo existe antes de tentar deletar
     if (fs.existsSync(screenshotPath)) {
       fs.unlinkSync(screenshotPath);
       console.log(`Screenshot ${screenshotNumber} removido: ${screenshotPath}`);

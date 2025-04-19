@@ -2,7 +2,6 @@ let isDragging = false;
 let dragStartPos = { x: 0, y: 0 };
 
 window.addEventListener('DOMContentLoaded', async () => {
-    // Usar a API correta conforme definida no preload
     const platform = window.electron?.platform || 'unknown';
     const isWindows = window.electron?.isWindows || false;
     const isLinux = window.electron?.isLinux || false;
@@ -10,20 +9,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     const isWSL = window.electron?.isWSL || false;
     const appVersion = window.electron?.appVersion || '1.0.0';
 
-    // Atualizar informações do sistema na barra de status
     updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion);
 
-    // Atualizar as teclas de atalho exibidas com base na plataforma
     updateShortcutDisplay(isMac);
 
-    // Mostra informações da plataforma nos logs
     document.getElementById("log-content").innerHTML += '<br> [SYSTEM] sistema iniciado';
     document.getElementById("log-content").innerHTML += `<br> [SYSTEM] plataforma detectada: ${platform}`;
     document.getElementById("log-content").innerHTML += `<br> [SYSTEM] versão: ${appVersion}`;
     document.getElementById("log-content").innerHTML += '<br> [APP] aguardando screenshot';
     document.getElementById("log-content").innerHTML += '<br> [HELPER] você pode apertar ctrl+shift+1 para tirar o primeiro screenshot';
 
-    // Mostrar mensagem inicial explicativa
     document.getElementById("response-text").innerHTML = `
         <div class="solution-tips">
             <h3>Bem-vindo ao LeetCode Ghost!</h3>
@@ -37,25 +32,19 @@ window.addEventListener('DOMContentLoaded', async () => {
         </div>
     `;
 
-    // Adiciona um indicador visual para modo ghost ativo
     updateGhostStatusIndicator(true);
 
-    // Configurar o drag da janela (para janela sem bordas)
     setupWindowDrag();
 
-    // Configurar os botões da janela
     setupWindowControls();
 });
 
-// Função para atualizar as teclas de atalho exibidas na interface
 function updateShortcutDisplay(isMac) {
-    // Selecionar todos os elementos de shortcut
     const shortcutElements = document.querySelectorAll('.shortcut span');
 
     if (shortcutElements.length === 0) return;
 
     if (isMac) {
-        // Substituir Ctrl por ⌘ (Command) nos elementos de shortcut
         shortcutElements.forEach(element => {
             const text = element.textContent;
             element.textContent = text.replace('Ctrl+', '⌘+').replace('Shift+', '⇧+');
@@ -65,7 +54,6 @@ function updateShortcutDisplay(isMac) {
     console.log(`Atalhos de teclado atualizados para ${isMac ? 'macOS' : 'Windows/Linux'}`);
 }
 
-// Função para atualizar informações do sistema na barra de status
 function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion) {
     const nodeVersionElement = document.getElementById('node-version');
     if (nodeVersionElement) {
@@ -80,7 +68,6 @@ function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion
         nodeVersionElement.textContent = platformDisplay;
     }
 
-    // Atualizar a versão do aplicativo na barra de status
     const versionElement = document.querySelector('.status-bar .status-item:first-child .status-value');
     if (versionElement) {
         versionElement.textContent = `Ghost v${appVersion}`;
@@ -88,12 +75,10 @@ function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion
 }
 
 function setupWindowDrag() {
-    // Elementos onde iniciaremos o drag (header e áreas vazias)
     const dragElements = document.querySelectorAll('.titlebar, .app-header');
 
     dragElements.forEach(element => {
         element.addEventListener('mousedown', (e) => {
-            // Não iniciar drag em botões ou outros controles
             if (e.target.closest('.window-controls') || e.target.closest('.ghost-status')) {
                 return;
             }
@@ -107,8 +92,6 @@ function setupWindowDrag() {
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
 
-        // Para movimento de janela, enviamos para o main process
-        // Electron possui uma API específica para isso que será implementada no main.js
         window.electron?.sendMovement?.(e.screenX - dragStartPos.x, e.screenY - dragStartPos.y);
     });
 
@@ -117,8 +100,6 @@ function setupWindowDrag() {
         document.body.classList.remove('dragging');
     });
 
-    // Suporte ao atalho para toggle do modo drag
-    // Ajustar para usar a API correta conforme definida no preload
     window.electron?.onToggleWindowDrag?.((_event) => {
         isDragging = !isDragging;
         if (isDragging) {
@@ -146,8 +127,6 @@ function setupWindowControls() {
     }
 }
 
-// Verificar se o modo ghost está realmente funcionando
-// Ajustar para usar a API correta conforme definida no preload
 window.electron?.onCheckGhostMode?.(async (_event) => {
     try {
         const ghostStatus = await window.electron?.testGhostMode?.() || {
@@ -159,7 +138,6 @@ window.electron?.onCheckGhostMode?.(async (_event) => {
 
         document.getElementById("log-content").innerHTML += `<br> [SYSTEM] modo ghost ativo: plataforma ${ghostStatus.platform}`;
 
-        // Atualizar informações do sistema na barra de status
         updateSystemInfo(
             ghostStatus.platform,
             ghostStatus.isWindows,
@@ -169,7 +147,6 @@ window.electron?.onCheckGhostMode?.(async (_event) => {
             window.electron?.appVersion || '1.0.0'
         );
 
-        // Verificar vulnerabilidades específicas da plataforma
         if (ghostStatus.isWindows) {
             document.getElementById("log-content").innerHTML += '<br> [GHOST] modo ghost do Windows ativado';
         } else if (ghostStatus.isLinux) {
@@ -182,7 +159,6 @@ window.electron?.onCheckGhostMode?.(async (_event) => {
     }
 });
 
-// Ajustar os handlers para usar a API correta
 window.electron?.onTriggerScreenshot?.(async (_event) => {
     try {
         document.getElementById("log-content").innerHTML += '<br> [APP] iniciando captura de tela para screenshot 1...';
@@ -289,9 +265,7 @@ function renderAnswer({ answers }) {
     try {
         let responseHtml = '<div class="leetcode-solution">';
 
-        // Construir a resposta formatada
         if (Array.isArray(answers)) {
-            // Unificar o conteúdo de todas as respostas
             let fullText = '';
             for (const answer of answers) {
                 if (answer.content && answer.content[0] && answer.content[0].text) {
@@ -299,7 +273,6 @@ function renderAnswer({ answers }) {
                 }
             }
 
-            // Analisar se há padrões de seções na resposta
             const hasSections = fullText.includes('## ') ||
                 fullText.includes('# ') ||
                 fullText.includes('**Abordagem**') ||
@@ -307,32 +280,25 @@ function renderAnswer({ answers }) {
                 fullText.includes('**Explicação**');
 
             if (hasSections) {
-                // Para respostas com formatação Markdown
                 const processedText = processMarkdown(fullText);
                 responseHtml += processedText;
             } else {
-                // Tratar como código simples com possíveis comentários
                 const codeMatch = fullText.match(/```(?:javascript|js|python|java|cpp|c\+\+)?([\s\S]*?)```/);
 
                 if (codeMatch && codeMatch[1]) {
-                    // Extrair e formatar o código
                     let codeContent = codeMatch[1].trim();
 
-                    // Detectar a linguagem
-                    let language = 'javascript'; // padrão
+                    let language = 'javascript';
                     if (fullText.includes('```python')) language = 'python';
                     else if (fullText.includes('```java')) language = 'java';
                     else if (fullText.includes('```cpp') || fullText.includes('```c++')) language = 'cpp';
 
-                    // Aplicar highlight ao código
                     const highlightedCode = hljs.highlight(codeContent, { language }).value;
 
-                    // Buscar explicação antes ou depois do código
                     const parts = fullText.split(/```(?:javascript|js|python|java|cpp|c\+\+)?[\s\S]*?```/);
                     let explanation = '';
 
                     if (parts.length > 0) {
-                        // Procurar pela explicação mais substancial
                         for (const part of parts) {
                             if (part.trim().length > explanation.length) {
                                 explanation = part.trim();
@@ -340,30 +306,24 @@ function renderAnswer({ answers }) {
                         }
                     }
 
-                    // Adicionar explicação se existir
                     if (explanation) {
                         responseHtml += `<div class="solution-explanation">${formatExplanation(explanation)}</div>`;
                     }
 
-                    // Adicionar o código formatado
                     responseHtml += `<h3>Solução (${getLanguageName(language)})</h3>`;
                     responseHtml += `<pre><code class="hljs ${language}">${highlightedCode}</code></pre>`;
                 } else {
-                    // Caso não encontre código formatado, mostrar o texto completo com análise de complexidade destacada
                     responseHtml += `<div class="solution-text">${formatSolutionText(fullText)}</div>`;
                 }
             }
         } else if (answers.output) {
-            // Caso a resposta venha diretamente como output (texto livre)
             responseHtml += `<div class="solution-text">${formatSolutionText(answers.output)}</div>`;
         }
 
         responseHtml += '</div>';
 
-        // Adicionar o HTML formatado à página
         document.getElementById("response-text").innerHTML = responseHtml;
 
-        // Adicionar informação no log
         document.getElementById("log-content").innerHTML += '<br> [APP] resposta gerada com sucesso!';
     } catch (error) {
         console.error("Erro ao renderizar resposta:", error);
@@ -372,27 +332,22 @@ function renderAnswer({ answers }) {
     }
 }
 
-// Formatar texto simples com destaque para partes importantes
 function formatSolutionText(text) {
-    // Destacar análise de complexidade
     text = text.replace(/[oO]\(([^)]+)\)/g, '<span class="complexity">O($1)</span>');
     text = text.replace(/(complexidade de tempo|time complexity|complexidade temporal)([^.]*)O\(([^)]+)\)/gi,
         '$1$2<span class="complexity">O($3)</span>');
     text = text.replace(/(complexidade de espaço|space complexity|complexidade espacial)([^.]*)O\(([^)]+)\)/gi,
         '$1$2<span class="complexity">O($3)</span>');
 
-    // Destacar quebras de linha
     text = text.replace(/\n\n/g, '<br><br>');
     text = text.replace(/\n/g, '<br>');
 
     return text;
 }
 
-// Processar markdown para HTML
 function processMarkdown(text) {
     let html = '';
 
-    // Dividir por linhas para processar cabeçalhos e listas
     const lines = text.split('\n');
     let inCodeBlock = false;
     let codeContent = '';
@@ -401,10 +356,8 @@ function processMarkdown(text) {
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
 
-        // Verificar início/fim de bloco de código
         if (line.trim().startsWith('```')) {
             if (!inCodeBlock) {
-                // Início do bloco de código
                 inCodeBlock = true;
                 const langMatch = line.trim().match(/```(\w+)/);
                 if (langMatch && langMatch[1]) {
@@ -413,7 +366,6 @@ function processMarkdown(text) {
                 codeContent = '';
                 continue;
             } else {
-                // Fim do bloco de código
                 inCodeBlock = false;
                 const highlightedCode = hljs.highlight(codeContent, { language }).value;
                 html += `<pre><code class="hljs ${language}">${highlightedCode}</code></pre>`;
@@ -421,13 +373,11 @@ function processMarkdown(text) {
             }
         }
 
-        // Adicionar linhas ao bloco de código
         if (inCodeBlock) {
             codeContent += line + '\n';
             continue;
         }
 
-        // Processar cabeçalhos
         if (line.startsWith('# ')) {
             html += `<h1>${line.substring(2)}</h1>`;
         } else if (line.startsWith('## ')) {
@@ -435,17 +385,13 @@ function processMarkdown(text) {
         } else if (line.startsWith('### ')) {
             html += `<h3>${line.substring(4)}</h3>`;
         } else if (line.startsWith('- ')) {
-            // Listas não ordenadas
             html += `<ul><li>${line.substring(2)}</li></ul>`;
         } else if (/^\d+\.\s/.test(line)) {
-            // Listas ordenadas
             const content = line.replace(/^\d+\.\s/, '');
             html += `<ol><li>${content}</li></ol>`;
         } else if (line.trim() === '') {
-            // Linhas em branco
             html += '<br>';
         } else {
-            // Processar ênfases dentro do texto
             line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
             line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
             line = line.replace(/`([^`]+)`/g, '<code>$1</code>');
@@ -457,7 +403,6 @@ function processMarkdown(text) {
     return html;
 }
 
-// Formatar explicação textual
 function formatExplanation(text) {
     text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -468,7 +413,6 @@ function formatExplanation(text) {
     return text;
 }
 
-// Obter nome da linguagem para exibição
 function getLanguageName(langCode) {
     const languages = {
         'javascript': 'JavaScript',
@@ -508,7 +452,6 @@ function updateScreenshotStatus(number, isActive) {
 function showLoading(isLoading) {
     const responseElement = document.getElementById("response-text");
     if (isLoading) {
-        // Mostrar animação de carregamento com dica
         responseElement.innerHTML = `
             <div class="loading">
                 <div class="loading-animation">
@@ -532,7 +475,7 @@ function dataAtualFormatada() {
     var data = new Date(),
         dia = data.getDate().toString(),
         diaF = (dia.length == 1) ? '0' + dia : dia,
-        mes = (data.getMonth() + 1).toString(), //+1 pois no getMonth Janeiro começa com zero.
+        mes = (data.getMonth() + 1).toString(),
         mesF = (mes.length == 1) ? '0' + mes : mes,
         anoF = data.getFullYear();
     return diaF + "/" + mesF + "/" + anoF;
@@ -546,7 +489,6 @@ function novaHora() {
     return [date.getHours(), date.getMinutes(), date.getSeconds()].map(pad).join(':');
 }
 
-// Sistema de seleção de área para captura de tela
 let selectionActive = false;
 let currentScreenshotNumber = 0;
 let startPoint = { x: 0, y: 0 };
@@ -556,14 +498,11 @@ let selectionArea = { x: 0, y: 0, width: 0, height: 0 };
 function startAreaSelection(screenshotNumber) {
     currentScreenshotNumber = screenshotNumber;
 
-    // Atualizar o status para indicar que está capturando
     document.getElementById("log-content").innerHTML +=
         '<br> [APP] capturando tela, por favor aguarde...';
 
-    // Minimiza a janela atual para permitir a captura da tela 
     window.electron?.minimizeWindow?.();
 
-    // Aguarda um tempo para a janela minimizar antes de iniciar a captura
     setTimeout(() => {
         window.electron?.startAreaSelection?.(screenshotNumber)
             .then(result => {
@@ -573,7 +512,6 @@ function startAreaSelection(screenshotNumber) {
                     updateScreenshotStatus(screenshotNumber, true);
                     displayScreenshotPreview(screenshotNumber, result.path);
 
-                    // Mostrar dica sobre como usar o LeetCode Ghost
                     if (screenshotNumber === 1) {
                         document.getElementById("response-text").innerHTML =
                             `<div>Captura 1 realizada. Você pode:</div>
@@ -597,25 +535,20 @@ function startAreaSelection(screenshotNumber) {
 }
 
 function displayScreenshotPreview(screenshotNumber, imagePath) {
-    // Garantir que o caminho da imagem tem um timestamp para evitar cache
     const timestamp = new Date().getTime();
     const imagePathWithTimestamp = `${imagePath}?t=${timestamp}`;
 
-    // Verificar se o container de previews existe
     let previewContainer = document.getElementById('screenshot-previews');
     if (!previewContainer) {
-        // Se não existir, criar o container
         previewContainer = document.createElement('div');
         previewContainer.id = 'screenshot-previews';
         previewContainer.className = 'screenshot-previews';
         document.querySelector('.main-content').appendChild(previewContainer);
     }
 
-    // Verificar se já existe um preview para este número
     const previewElement = document.getElementById(`screenshot-${screenshotNumber}-preview`);
 
     if (!previewElement) {
-        // Se o elemento de preview não existe, cria um novo
         const newPreview = document.createElement('div');
         newPreview.id = `screenshot-${screenshotNumber}-preview`;
         newPreview.className = 'screenshot-preview';
@@ -634,40 +567,32 @@ function displayScreenshotPreview(screenshotNumber, imagePath) {
 
         previewContainer.appendChild(newPreview);
 
-        // Adicionar animação de fade-in
         setTimeout(() => {
             newPreview.classList.add('visible');
         }, 10);
 
-        // Mostrar mensagem informativa
         document.getElementById("response-text").textContent =
             screenshotNumber === 1 ? "Captura 1 realizada. Use Ctrl+Shift+A para processar ou capture mais telas." :
                 "Capturas realizadas. Use Ctrl+Shift+A/B/C para processar as imagens.";
     } else {
-        // Se o elemento já existe, atualiza a imagem
         const imageElement = previewElement.querySelector('.preview-image');
         if (imageElement) {
             imageElement.src = imagePathWithTimestamp;
         }
 
-        // Garantir que o preview esteja visível
         previewElement.style.display = 'flex';
         previewElement.classList.add('visible');
     }
 
-    // Atualizar o status do screenshot
     updateScreenshotStatus(screenshotNumber, true);
 }
 
-// Função para remover um screenshot
 window.removeScreenshot = function (screenshotNumber) {
     const previewElement = document.getElementById(`screenshot-${screenshotNumber}-preview`);
     if (previewElement) {
-        // Adicionar animação de fade-out antes de esconder
         previewElement.classList.remove('visible');
         previewElement.classList.add('removing');
 
-        // Aguardar a animação terminar antes de esconder
         setTimeout(() => {
             previewElement.style.display = 'none';
             previewElement.classList.remove('removing');
@@ -681,7 +606,6 @@ window.removeScreenshot = function (screenshotNumber) {
             document.getElementById("log-content").innerHTML +=
                 `<br> [APP] screenshot ${screenshotNumber} removido`;
 
-            // Atualizar mensagem informativa
             const previewContainer = document.getElementById('screenshot-previews');
             const visiblePreviews = previewContainer.querySelectorAll('.screenshot-preview[style*="display: flex"], .screenshot-preview.visible');
 
