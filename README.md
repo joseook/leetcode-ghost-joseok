@@ -8,71 +8,38 @@
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#usage">Usage</a> •
-  <a href="#cli-installation">CLI Installation</a> •
-  <a href="#how-it-works">How It Works</a> •
   <a href="#platforms">Platforms</a> •
-  <a href="#wsl-setup">WSL Setup</a> •
-  <a href="#build-distribution">Build Distribution</a> •
-  <a href="#releases">Releases</a> •
+  <a href="#responsible-use">Responsible Use</a> •
   <a href="#license">License</a>
 </p>
 
-LeetCode Ghost Window is an application designed to help you solve LeetCode problems while keeping your window completely invisible to screen recording software like OBS Studio, Discord streaming, or any other screen capture tools. It uses advanced window properties to create a truly "ghost" window that only you can see on your screen.
+LeetCode Ghost Window is an application designed to help you solve LeetCode problems by creating a window that stays hidden from screen recording software. This tool provides assistance while practicing and learning algorithmic problem-solving.
+
+> 📚 For comprehensive documentation, visit our website: [https://leetghost.online](https://leetghost.online)
 
 ## Features
 
-- ✨ **True Ghost Mode**: Advanced implementation for complete invisibility to screen recorders and streaming software
-- 🖥️ **Multi-platform**: Enhanced compatibility with Windows, Linux, WSL, and macOS
-- 🎨 **Minimalist Design**: Clean, modern interface that stays out of your way
-- 📸 **Improved Screenshot Capture**: Streamlined process to capture all types of LeetCode problems
-- 🤖 **Enhanced AI Analysis**: Process captured screenshots with OpenAI's API for detailed code solutions
-- 🧩 **Multi-language Support**: Solutions in JavaScript, Python, Java, C++, and other popular languages
-- 🔍 **Rich Code Formatting**: Improved syntax highlighting and code organization
-- 🚀 **Detailed Explanations**: Solution breakdown with complexity analysis and approach explanations
-- 🔄 **System Tray Integration**: Easy access to application functions even when hidden
-- ⌨️ **Keyboard Shortcuts**: Control everything without leaving LeetCode
-- 🖥️ **CLI Support**: Control LeetCode Ghost Window through command-line interface
-
-## Advanced Ghost Mode
-
-Version 1.2.0 introduces substantial improvements to the Ghost Mode functionality, making the window truly invisible to capture software:
-
-- **Windows**: Uses native `SetWindowDisplayAffinity` and `DwmSetWindowAttribute` APIs for complete invisibility
-- **Linux**: Improved X11/Wayland compatibility with advanced window properties
-- **WSL**: Enhanced window layering and properties to avoid screen capture
-- **macOS**: Enhanced window layering and properties to avoid screen capture
-
-These techniques have been thoroughly tested against OBS Studio, Discord streaming, and other popular capture tools.
+- ✨ **Ghost Mode**: Window remains invisible to screen recorders and streaming software
+- 🖥️ **Multi-platform**: Works on Windows, Linux, WSL, and macOS
+- 🎨 **Clean Design**: Minimalist interface that stays out of your way
+- 📸 **Screenshot Capture**: Easily capture LeetCode problems with keyboard shortcuts
+- 🤖 **AI Analysis**: Process screenshots with OpenAI's API for solution suggestions
+- 🧩 **Multi-language Support**: Solutions in JavaScript, Python, Java, C++, and more
+- 🚀 **Detailed Explanations**: Solution breakdown with complexity analysis
+- ⌨️ **Keyboard Shortcuts**: Control everything with convenient shortcuts
+- 🖥️ **CLI Support**: Command-line interface for additional flexibility
 
 ## Installation
 
-### Pre-built Binaries
+### Download Pre-built Binaries
 
-Download the latest pre-built binary from the [Releases](https://github.com/joseook/leetcode-ghost-joseok/releases) page:
+Download the latest version from our [Releases](https://github.com/joseook/leetcode-ghost-joseok/releases) page:
 
 - **Windows**: Download and run the `.exe` installer
 - **macOS**: Download the `.dmg` file, open it, and drag the app to your Applications folder
 - **Linux**: Download the `.AppImage` file (works on most distros) or specific `.deb`/`.rpm` packages
 
-### Building from Source
-
-```bash
-# Clone this repository
-git clone https://github.com/joseook/leetcode-ghost-joseok
-cd leetcode-ghost-joseok
-
-# Install dependencies (npm, yarn, or pnpm)
-npm install
-# OR
-yarn install
-# OR
-pnpm install
-
-# Run the app
-npm start
-```
-
-## CLI Installation
+### Install via NPM
 
 You can also install the LeetCode Ghost Window CLI via npm:
 
@@ -87,249 +54,59 @@ leet-joseok --version
 leet-joseok init
 ```
 
-The CLI provides an easy way to launch and interact with the LeetCode Ghost Window application from your terminal. For more information, see the [CLI documentation](https://www.leetghost.online/cli).
-
 ## Usage
 
-1. **Launch the application**: It will start in Ghost Mode, invisible to screen recorders
-2. **Enter your OpenAI API Key**: Required for processing screenshots
+1. **Launch the application**: It will start in Ghost Mode by default
+2. **Enter your OpenAI API Key**: Required for AI processing of screenshots
 3. **Navigate to a LeetCode problem**
-4. **Capture screenshots**: Use the shortcuts to capture the problem description
-   - `Ctrl+Shift+1`: Capture first screenshot
-   - `Ctrl+Shift+2`: Capture second screenshot (if needed)
-   - `Ctrl+Shift+3`: Capture third screenshot (if needed)
-5. **Process screenshots**: Use the AI to get a solution
-   - `Ctrl+Shift+A`: Process with 1 image
-   - `Ctrl+Shift+B`: Process with 2 images
-   - `Ctrl+Shift+C`: Process with 3 images
+4. **Capture screenshots**: Use keyboard shortcuts to capture the problem
+   - `Ctrl+Shift+1` (Windows/Linux) or `⌘+⇧+1` (macOS): Capture first screenshot
+   - `Ctrl+Shift+2` or `⌘+⇧+2`: Capture second screenshot (if needed)
+   - `Ctrl+Shift+3` or `⌘+⇧+3`: Capture third screenshot (if needed)
+5. **Process screenshots**: Get AI-powered solution suggestions
+   - `Ctrl+Shift+A` or `⌘+⇧+A`: Process with 1 image
+   - `Ctrl+Shift+B` or `⌘+⇧+B`: Process with 2 images
+   - `Ctrl+Shift+C` or `⌘+⇧+C`: Process with 3 images
 6. **Window Management**:
-   - `Ctrl+Shift+H`: Hide window
-   - `Ctrl+Shift+S`: Show window
-   - `Ctrl+Shift+Q`: Quit application
-   - `Ctrl+Shift+M`: Toggle window drag mode
+   - `Ctrl+Shift+H` or `⌘+⇧+H`: Hide window
+   - `Ctrl+Shift+S` or `⌘+⇧+S`: Show window
+   - `Ctrl+Shift+Q` or `⌘+⇧+Q`: Quit application
+   - `Ctrl+Shift+M` or `⌘+⇧+M`: Toggle window drag mode
 
 You can also access all functions through the system tray icon.
 
-### CLI Usage
-
-If you've installed the CLI, you can use the following commands:
-
-```bash
-# Launch the application
-leet-joseok init
-
-# Configure the OpenAI API key
-leet-joseok config set apiKey YOUR_OPENAI_API_KEY
-
-# Get help
-leet-joseok help
-```
-
-## Improved Screenshot Capture
-
-Version 1.3.0 introduces an enhanced screenshot system:
-
-- **Direct Screen Capture**: Instantly captures your screen when shortcuts are pressed
-- **Automatic Preview**: Shows screenshot thumbnails directly in the application
-- **Multi-capture Support**: Take up to 3 screenshots for complex problems with multiple sections
-- **Visual Feedback**: Status indicators show which screenshots have been captured
-
-## Enhanced Solution Processing
-
-The upgraded AI processing now provides:
-
-- **Comprehensive Solutions**: Complete code with detailed explanations
-- **Multiple Language Support**: Automatically detects and provides solutions in appropriate languages:
-  - JavaScript/TypeScript
-  - Python
-  - Java
-  - C++
-  - Other languages based on the problem context
-- **Complexity Analysis**: Time and space complexity evaluation for each solution
-- **Approach Explanation**: Detailed breakdown of the solution approach and algorithm
-- **Code Commentary**: Well-commented code that explains the implementation
-- **Alternative Solutions**: When applicable, provides multiple approaches with trade-offs
-
-## Minimalist Design
-
-The new minimalist design provides a clean, distraction-free interface:
-
-- **Frameless Window**: Modern look with custom title bar
-- **Compact Layout**: Optimized for screen real estate
-- **Dark Theme**: Easy on the eyes during coding sessions
-- **Visual Indicators**: Clear status feedback for screenshots and ghost mode
-
-## How It Works
-
-### Ghost Mode Technology
-
-The application uses different techniques depending on your operating system:
-
-- **Windows**: 
-  - `SetWindowDisplayAffinity` with `WDA_EXCLUDEFROMCAPTURE` flag
-  - `DwmSetWindowAttribute` with `DWMWA_CLOAK` for advanced hiding
-  - Additional window style modifications to prevent detection
-
-- **Linux**: 
-  - Combines X11/Wayland window properties
-  - Uses selective transparency and window type modifications
-  - Applies CSS techniques to avoid compositor capture
-
-- **WSL**: 
-  - Specialized window layering and visibility settings
-  - Window property modifications to avoid detection
-  - CSS and rendering adjustments to evade capture systems
-
-- **macOS**: 
-  - Window layering and opacity adjustments
-  - Content protection and workspace visibility modifications
-  - Specialized window button visibility settings
-
-These techniques make the window completely invisible to screen recording software while still being visible to you.
-
-### Screenshot Processing
-
-1. The app captures screenshots of your screen
-2. Images are processed using OpenAI's Vision API
-3. The AI analyzes the LeetCode problem and generates a comprehensive solution
-4. The solution is displayed with syntax highlighting, explanations, and complexity analysis
-
 ## Platforms
 
-| Platform | Support | Additional Notes |
-|----------|---------|------------------|
-| Windows  | ✅ Full | Enhanced ghost capabilities, thoroughly tested on Windows 10/11 |
-| Linux    | ✅ Full | Improved Wayland and X11 support, tested on Ubuntu 22.04, Fedora, and Arch |
-| WSL      | ✅ Full | Enhanced window property settings, tested on WSL1 and WSL2 |
-| macOS    | ✅ Full | Enhanced window property settings, tested on macOS Ventura and Sonoma |
+LeetCode Ghost Window is compatible with multiple operating systems:
 
-## WSL Setup
+| Platform | Support | Notes |
+|----------|---------|-------|
+| Windows  | ✅ Full | Works on Windows 10/11 |
+| Linux    | ✅ Full | Works on major distributions (Ubuntu, Fedora, Arch) |
+| WSL      | ✅ Full | Works on Windows Subsystem for Linux |
+| macOS    | ✅ Full | Works on macOS Ventura, Sonoma, and newer versions |
 
-To run the application in WSL (Windows Subsystem for Linux), you'll need an X server on Windows:
+## Responsible Use
 
-### 1. Install an X Server on Windows
+**Important Statement from the Author (joseok):**
 
-We recommend using [VcXsrv](https://sourceforge.net/projects/vcxsrv/) or [Xming](https://sourceforge.net/projects/xming/).
+LeetCode Ghost Window is designed as a learning and practice tool to help users understand algorithmic problem-solving. The author and contributors do not endorse or encourage:
 
-#### Using VcXsrv:
-1. Download and install VcXsrv from [SourceForge](https://sourceforge.net/projects/vcxsrv/)
-2. Start XLaunch
-3. In the settings:
-   - Select "Multiple windows" and "Display number" as 0
-   - Select "Start no client"
-   - In "Extra settings", check "Disable access control"
-   - **Important**: When finishing, ensure Windows Firewall allows both public and private connections
+- Using this software to cheat during actual job interviews
+- Misrepresenting your skills in professional settings
+- Violating any terms of service of LeetCode or similar platforms
 
-### 2. Configure WSL
-
-1. Use our automated launcher script:
-
-```bash
-npm run wsl
-```
-
-This script will:
-- Automatically configure the DISPLAY variable
-- Detect whether you're using WSL1 or WSL2
-- Try multiple DISPLAY options until it finds a working one
-- Provide troubleshooting tips if the X server is not found
-
-2. Alternatively, you can manually configure:
-
-```bash
-# For WSL2
-export DISPLAY=$(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0.0
-
-# For WSL1
-export DISPLAY=:0
-```
-
-### WSL Troubleshooting
-
-#### Window doesn't appear:
-- **VcXsrv not running**: Start VcXsrv using XLaunch
-- **Firewall settings**: Make sure VcXsrv has permission in the firewall for BOTH public AND private connections
-- **Access control**: Make sure to check "Disable access control" in VcXsrv settings
-- **Incorrect DISPLAY**: Try manually adjusting DISPLAY:
-  ```bash
-  # Try these options:
-  export DISPLAY=:0
-  export DISPLAY=:0.0
-  export DISPLAY=localhost:0.0
-  export DISPLAY=$(grep nameserver /etc/resolv.conf | awk '{print $2}'):0.0
-  ```
-
-#### Ghost Mode limitations in WSL:
-- In WSL, there are technical limitations for ghost mode due to architectural differences
-- Basic mode still works, but some advanced techniques aren't available in WSL
-
-#### Testing X11 configuration:
-- Run this command to check if X11 is working:
-  ```bash
-  xeyes
-  ```
-  If a window with eyes appears, your X11 is properly configured
-
-## Build Distribution
-
-To create distribution packages for different platforms, we use Electron Builder. This will create installers, executables, and portable packages that you can distribute.
-
-### Creating Application Icons
-
-Before building the distribution packages, you should create proper application icons:
-
-- **Windows**: `assets/images/icon.png` (256x256 or larger)
-- **macOS**: `assets/images/icon.icns`
-- **Linux**: `assets/images/icon.png` (256x256 or larger)
-
-### Building Packages
-
-```bash
-# For all platforms
-npm run dist:all
-
-# For specific platforms
-npm run dist:win    # Windows
-npm run dist:mac    # macOS
-npm run dist:linux  # Linux
-```
-
-The distribution packages will be created in the `dist/` directory.
-
-## Releases
-
-We use GitHub Actions to automate the build and release process. For detailed information about the release process, see [RELEASE.md](RELEASE.md).
-
-### Creating a New Release
-
-To create a new release:
-
-```bash
-# For patch version (bug fixes) - 1.4.0 -> 1.4.1
-npm run release:patch
-
-# For minor version (new features) - 1.4.0 -> 1.5.0
-npm run release:minor
-
-# For major version (breaking changes) - 1.4.0 -> 2.0.0
-npm run release:major
-```
-
-These commands will automatically:
-- Update the version in package.json
-- Create a git commit and tag
-- Push to GitHub
-- Trigger GitHub Actions to build and publish the release
+The primary goal of this tool is to facilitate learning and practice in a comfortable environment. Users are expected to use this software ethically and responsibly. Remember that true understanding of algorithms and data structures is crucial for success in technical roles.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Developer Support
+---
 
-If you'd like to support the development of this project:
-
-- Star this repository
-- Report any issues or suggest improvements
-- Contribute to the codebase with pull requests
+<p align="center">
+  <a href="https://leetghost.online">📚 Documentation</a> •
+  <a href="https://github.com/joseook/leetcode-ghost-joseok/issues">🐛 Report Bug</a> •
+  <a href="https://github.com/joseook/leetcode-ghost-joseok/releases">📦 Releases</a>
+</p>
 
