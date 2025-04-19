@@ -323,63 +323,78 @@ function createMainWindow() {
     }
   });
 
-  // Registrar atalhos globais
-  globalShortcut.register('Control+shift+1', () => {
-    if (mainWindow) mainWindow.webContents.send('trigger-screenshot');
-  });
-
-  globalShortcut.register('Control+shift+2', () => {
-    if (mainWindow) mainWindow.webContents.send('trigger-screenshot2');
-  });
-
-  globalShortcut.register('Control+shift+3', () => {
-    if (mainWindow) mainWindow.webContents.send('trigger-screenshot3');
-  });
-
-  globalShortcut.register('Control+shift+a', () => {
-    if (mainWindow) mainWindow.webContents.send('trigger-ai1');
-  });
-
-  globalShortcut.register('Control+shift+b', () => {
-    if (mainWindow) mainWindow.webContents.send('trigger-ai2');
-  });
-
-  globalShortcut.register('Control+shift+c', () => {
-    if (mainWindow) mainWindow.webContents.send('trigger-ai3');
-  });
-
-  globalShortcut.register('Control+shift+h', () => {
-    if (mainWindow) mainWindow.hide();
-  });
-
-  globalShortcut.register('Control+shift+s', () => {
-    if (mainWindow) {
-      mainWindow.show();
-      // Reforçar o modo ghost quando mostramos a janela explicitamente
-      const ghostModeEnabled = settings.get('ghostMode');
-      if (ghostModeEnabled) {
-        setTimeout(() => {
-          applyAdvancedGhostMode(mainWindow);
-        }, 500);
-      }
-    }
-  });
-
-  // Atalho para fechar o aplicativo
-  globalShortcut.register('Control+shift+q', () => {
-    app.quit();
-  });
-
-  // Atalho para mover a janela
-  globalShortcut.register('Control+shift+m', () => {
-    if (mainWindow) mainWindow.webContents.send('toggle-window-drag');
-  });
+  // Registrar atalhos globais adaptados para cada plataforma
+  registerShortcuts(mainWindow);
 
   // Debug mode - uncomment if needed
   // mainWindow.webContents.openDevTools();
   mainWindow.setMenu(null);
 
   return mainWindow;
+}
+
+// Função para registrar atalhos de teclado de acordo com a plataforma
+function registerShortcuts(window) {
+  // Determinar qual modificador usar com base na plataforma
+  const modKey = isMac ? 'Command' : 'Control';
+
+  // Atalhos para captura de tela
+  globalShortcut.register(`${modKey}+shift+1`, () => {
+    if (window) window.webContents.send('trigger-screenshot');
+  });
+
+  globalShortcut.register(`${modKey}+shift+2`, () => {
+    if (window) window.webContents.send('trigger-screenshot2');
+  });
+
+  globalShortcut.register(`${modKey}+shift+3`, () => {
+    if (window) window.webContents.send('trigger-screenshot3');
+  });
+
+  // Atalhos para processamento de IA
+  globalShortcut.register(`${modKey}+shift+a`, () => {
+    if (window) window.webContents.send('trigger-ai1');
+  });
+
+  globalShortcut.register(`${modKey}+shift+b`, () => {
+    if (window) window.webContents.send('trigger-ai2');
+  });
+
+  globalShortcut.register(`${modKey}+shift+c`, () => {
+    if (window) window.webContents.send('trigger-ai3');
+  });
+
+  // Atalhos para controle da janela
+  globalShortcut.register(`${modKey}+shift+h`, () => {
+    if (window) window.hide();
+  });
+
+  globalShortcut.register(`${modKey}+shift+s`, () => {
+    if (window) {
+      window.show();
+      // Reforçar o modo ghost quando mostramos a janela explicitamente
+      const ghostModeEnabled = settings.get('ghostMode');
+      if (ghostModeEnabled) {
+        setTimeout(() => {
+          applyAdvancedGhostMode(window);
+        }, 500);
+      }
+    }
+  });
+
+  // Atalho para fechar o aplicativo
+  // No macOS, usar Command+Q que é a convenção da plataforma
+  const quitShortcut = isMac ? 'Command+q' : `${modKey}+shift+q`;
+  globalShortcut.register(quitShortcut, () => {
+    app.quit();
+  });
+
+  // Atalho para mover a janela
+  globalShortcut.register(`${modKey}+shift+m`, () => {
+    if (window) window.webContents.send('toggle-window-drag');
+  });
+
+  console.log(`Atalhos registrados para plataforma: ${process.platform}`);
 }
 
 // Aplicar configurações iniciais

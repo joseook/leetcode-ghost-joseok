@@ -13,6 +13,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Atualizar informações do sistema na barra de status
     updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion);
 
+    // Atualizar as teclas de atalho exibidas com base na plataforma
+    updateShortcutDisplay(isMac);
+
     // Mostra informações da plataforma nos logs
     document.getElementById("log-content").innerHTML += '<br> [SYSTEM] sistema iniciado';
     document.getElementById("log-content").innerHTML += `<br> [SYSTEM] plataforma detectada: ${platform}`;
@@ -27,8 +30,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             <p>Este aplicativo ajuda você a resolver problemas de LeetCode.</p>
             <ol>
                 <li>Insira sua chave da API OpenAI acima</li>
-                <li>Capture a tela com o problema do LeetCode usando Ctrl+Shift+1</li>
-                <li>Processe a imagem e obtenha a solução com Ctrl+Shift+A</li>
+                <li>Capture a tela com o problema do LeetCode usando ${isMac ? '⌘+⇧+1' : 'Ctrl+Shift+1'}</li>
+                <li>Processe a imagem e obtenha a solução com ${isMac ? '⌘+⇧+A' : 'Ctrl+Shift+A'}</li>
             </ol>
             <p>Para problemas complexos, você pode capturar até 3 telas e processá-las juntas.</p>
         </div>
@@ -43,6 +46,24 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Configurar os botões da janela
     setupWindowControls();
 });
+
+// Função para atualizar as teclas de atalho exibidas na interface
+function updateShortcutDisplay(isMac) {
+    // Selecionar todos os elementos de shortcut
+    const shortcutElements = document.querySelectorAll('.shortcut span');
+
+    if (shortcutElements.length === 0) return;
+
+    if (isMac) {
+        // Substituir Ctrl por ⌘ (Command) nos elementos de shortcut
+        shortcutElements.forEach(element => {
+            const text = element.textContent;
+            element.textContent = text.replace('Ctrl+', '⌘+').replace('Shift+', '⇧+');
+        });
+    }
+
+    console.log(`Atalhos de teclado atualizados para ${isMac ? 'macOS' : 'Windows/Linux'}`);
+}
 
 // Função para atualizar informações do sistema na barra de status
 function updateSystemInfo(platform, isWindows, isLinux, isMac, isWSL, appVersion) {

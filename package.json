@@ -1,6 +1,6 @@
 {
   "name": "leetcode-ghost-window",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "description": "An invisible window for LeetCode problem solving that stays hidden from recording/streaming applications",
   "main": "main.js",
   "scripts": {
@@ -136,5 +136,13 @@
       "provider": "github",
       "releaseType": "release"
     }
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joseook/leetcode-ghost-joseok.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joseook/leetcode-ghost-joseok/issues"
+  },
+  "homepage": "https://github.com/joseook/leetcode-ghost-joseok#readme"
 }
