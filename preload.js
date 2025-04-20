@@ -49,5 +49,6 @@ contextBridge.exposeInMainWorld('electron', {
   onTriggerAi3: (callback) => ipcRenderer.on('trigger-ai3', callback),
   onToggleWindowDrag: (callback) => ipcRenderer.on('toggle-window-drag', callback),
   onCheckGhostMode: (callback) => ipcRenderer.on('check-ghost-mode', callback),
+  onShortcutRegistrationFailed: (callback) => ipcRenderer.on('shortcut-registration-failed', callback),
 });
 

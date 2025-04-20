@@ -617,3 +617,31 @@ window.removeScreenshot = function (screenshotNumber) {
             console.error(`Erro ao remover screenshot ${screenshotNumber}:`, error);
         });
 };
+
+// Adicionar um ouvinte para falha no registro de atalhos
+window.electron?.onShortcutRegistrationFailed?.(async (event, { failed, registered }) => {
+    try {
+        // Aviso sobre atalhos que não puderam ser registrados
+        if (failed && failed.length > 0) {
+            const isLinux = window.electron?.isLinux || false;
+
+            console.log(`Alguns atalhos não puderam ser registrados: ${failed.join(', ')}`);
+
+            // Adicionar mensagem ao log
+            document.getElementById("log-content").innerHTML +=
+                `<br> [SYSTEM] Alguns atalhos não puderam ser registrados. ` +
+                `${isLinux ? "Use os atalhos alternativos (Alt+número/letra) em vez disso." : ""}`;
+
+            // Para Linux, mostrar os atalhos disponíveis
+            if (isLinux && registered && registered.length > 0) {
+                const altShortcuts = registered.filter(s => s.startsWith('Alt+'));
+                if (altShortcuts.length > 0) {
+                    document.getElementById("log-content").innerHTML +=
+                        `<br> [SYSTEM] Atalhos alternativos disponíveis: ${altShortcuts.join(', ')}`;
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Erro ao processar notificação de atalhos:", error);
+    }
+});

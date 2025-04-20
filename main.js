@@ -314,54 +314,95 @@ function createMainWindow() {
 function registerShortcuts(window) {
   const modKey = isMac ? 'Command' : 'Control';
 
-  globalShortcut.register(`${modKey}+shift+1`, () => {
-    if (window) window.webContents.send('trigger-screenshot');
-  });
+  // Limpar todos os atalhos primeiro para evitar conflitos
+  globalShortcut.unregisterAll();
 
-  globalShortcut.register(`${modKey}+shift+2`, () => {
-    if (window) window.webContents.send('trigger-screenshot2');
-  });
-
-  globalShortcut.register(`${modKey}+shift+3`, () => {
-    if (window) window.webContents.send('trigger-screenshot3');
-  });
-
-  globalShortcut.register(`${modKey}+shift+a`, () => {
-    if (window) window.webContents.send('trigger-ai1');
-  });
-
-  globalShortcut.register(`${modKey}+shift+b`, () => {
-    if (window) window.webContents.send('trigger-ai2');
-  });
-
-  globalShortcut.register(`${modKey}+shift+c`, () => {
-    if (window) window.webContents.send('trigger-ai3');
-  });
-
-  globalShortcut.register(`${modKey}+shift+h`, () => {
-    if (window) window.hide();
-  });
-
-  globalShortcut.register(`${modKey}+shift+s`, () => {
-    if (window) {
-      window.show();
-      const ghostModeEnabled = settings.get('ghostMode');
-      if (ghostModeEnabled) {
-        setTimeout(() => {
-          applyAdvancedGhostMode(window);
-        }, 500);
+  // Lista de atalhos para tentar registrar
+  const shortcuts = [
+    // Atalhos padrão
+    { keys: `${modKey}+shift+1`, action: () => window && window.webContents.send('trigger-screenshot') },
+    { keys: `${modKey}+shift+2`, action: () => window && window.webContents.send('trigger-screenshot2') },
+    { keys: `${modKey}+shift+3`, action: () => window && window.webContents.send('trigger-screenshot3') },
+    { keys: `${modKey}+shift+a`, action: () => window && window.webContents.send('trigger-ai1') },
+    { keys: `${modKey}+shift+b`, action: () => window && window.webContents.send('trigger-ai2') },
+    { keys: `${modKey}+shift+c`, action: () => window && window.webContents.send('trigger-ai3') },
+    { keys: `${modKey}+shift+h`, action: () => window && window.hide() },
+    {
+      keys: `${modKey}+shift+s`, action: () => {
+        if (window) {
+          window.show();
+          const ghostModeEnabled = settings.get('ghostMode');
+          if (ghostModeEnabled) {
+            setTimeout(() => {
+              applyAdvancedGhostMode(window);
+            }, 500);
+          }
+        }
       }
+    },
+    { keys: isMac ? 'Command+q' : `${modKey}+shift+q`, action: () => app.quit() },
+    { keys: `${modKey}+shift+m`, action: () => window && window.webContents.send('toggle-window-drag') },
+
+    // Atalhos alternativos para Linux (Alt+...)
+    ...(isLinux ? [
+      { keys: `Alt+1`, action: () => window && window.webContents.send('trigger-screenshot') },
+      { keys: `Alt+2`, action: () => window && window.webContents.send('trigger-screenshot2') },
+      { keys: `Alt+3`, action: () => window && window.webContents.send('trigger-screenshot3') },
+      { keys: `Alt+a`, action: () => window && window.webContents.send('trigger-ai1') },
+      { keys: `Alt+b`, action: () => window && window.webContents.send('trigger-ai2') },
+      { keys: `Alt+c`, action: () => window && window.webContents.send('trigger-ai3') },
+      { keys: `Alt+h`, action: () => window && window.hide() },
+      {
+        keys: `Alt+s`, action: () => {
+          if (window) {
+            window.show();
+            const ghostModeEnabled = settings.get('ghostMode');
+            if (ghostModeEnabled) {
+              setTimeout(() => {
+                applyAdvancedGhostMode(window);
+              }, 500);
+            }
+          }
+        }
+      },
+      { keys: `Alt+q`, action: () => app.quit() },
+      { keys: `Alt+m`, action: () => window && window.webContents.send('toggle-window-drag') },
+    ] : [])
+  ];
+
+  // Registrar os atalhos
+  const registeredShortcuts = [];
+  const failedShortcuts = [];
+
+  shortcuts.forEach(shortcut => {
+    try {
+      if (globalShortcut.register(shortcut.keys, shortcut.action)) {
+        registeredShortcuts.push(shortcut.keys);
+      } else {
+        failedShortcuts.push(shortcut.keys);
+        console.log(`Falha ao registrar atalho: ${shortcut.keys}`);
+      }
+    } catch (error) {
+      failedShortcuts.push(shortcut.keys);
+      console.error(`Erro ao registrar atalho ${shortcut.keys}:`, error.message);
     }
   });
 
-  const quitShortcut = isMac ? 'Command+q' : `${modKey}+shift+q`;
-  globalShortcut.register(quitShortcut, () => {
-    app.quit();
-  });
+  console.log(`Atalhos registrados (${registeredShortcuts.length}): ${registeredShortcuts.join(', ')}`);
 
-  globalShortcut.register(`${modKey}+shift+m`, () => {
-    if (window) window.webContents.send('toggle-window-drag');
-  });
+  if (failedShortcuts.length > 0) {
+    console.log(`Atalhos com falha (${failedShortcuts.length}): ${failedShortcuts.join(', ')}`);
+
+    // Notifica o usuário sobre a falha nos atalhos
+    setTimeout(() => {
+      if (window) {
+        window.webContents.send('shortcut-registration-failed', {
+          failed: failedShortcuts,
+          registered: registeredShortcuts
+        });
+      }
+    }, 5000);
+  }
 
   console.log(`Atalhos registrados para plataforma: ${process.platform}`);
 }
@@ -458,10 +499,62 @@ if (isLinux) {
   // Verificar e instalar pacotes necessários
   try {
     const { execSync } = require('child_process');
-    execSync('which xprop > /dev/null || which apt-get > /dev/null && sudo apt-get update && sudo apt-get install -y x11-utils xdotool libx11-dev', {
-      stdio: 'ignore',
-      timeout: 3000
-    });
+
+    // Verifica se apt-get está disponível
+    try {
+      execSync('which apt-get', { stdio: 'ignore', timeout: 1000 });
+
+      // Verifica ferramentas de captura de tela
+      let missingTools = [];
+
+      try { execSync('which xprop', { stdio: 'ignore' }); }
+      catch (e) { missingTools.push('x11-utils'); }
+
+      try { execSync('which xdotool', { stdio: 'ignore' }); }
+      catch (e) { missingTools.push('xdotool'); }
+
+      // Verifica ferramentas de captura
+      const screenTools = [
+        { cmd: 'which gnome-screenshot', pkg: 'gnome-screenshot' },
+        { cmd: 'which scrot', pkg: 'scrot' },
+        { cmd: 'which import', pkg: 'imagemagick' }
+      ];
+
+      let hasAnyScreenshotTool = false;
+
+      for (const tool of screenTools) {
+        try {
+          execSync(tool.cmd, { stdio: 'ignore' });
+          hasAnyScreenshotTool = true;
+          console.log(`Ferramenta de captura encontrada: ${tool.pkg}`);
+          break;
+        } catch (e) {
+          // Continua verificando
+        }
+      }
+
+      if (!hasAnyScreenshotTool) {
+        missingTools.push('scrot');
+      }
+
+      // Instala ferramentas faltantes se necessário
+      if (missingTools.length > 0) {
+        console.log(`Instalando ferramentas necessárias: ${missingTools.join(', ')}`);
+        try {
+          execSync(`sudo apt-get update && sudo apt-get install -y ${missingTools.join(' ')}`, {
+            stdio: 'inherit',
+            timeout: 60000  // 60 segundos para timeout
+          });
+          console.log('Ferramentas instaladas com sucesso');
+        } catch (installError) {
+          console.log('Erro ao instalar ferramentas. Algumas funcionalidades podem estar limitadas.', installError.message);
+        }
+      }
+    } catch (aptError) {
+      // apt-get não disponível, ignora a instalação
+      console.log('apt-get não encontrado, pulando instalação automática');
+    }
+
   } catch (e) {
     console.log('Falha ao verificar/instalar dependências. O ghost-mode pode ter funcionalidade limitada.');
   }
@@ -703,16 +796,58 @@ async function captureFullScreenLinux(screenshotNumber) {
   try {
     const outputPath = path.join(__dirname, "screenshots", `screenshot${screenshotNumber > 1 ? screenshotNumber : ''}.png`);
 
-    try {
-      execSync(`gnome-screenshot -f "${outputPath}"`, { timeout: 3000 });
-      if (fs.existsSync(outputPath)) {
-        return { path: outputPath };
+    // Tenta vários métodos de captura de tela no Linux, em ordem de preferência
+    const captureCommands = [
+      // Método 1: gnome-screenshot (ambiente GNOME)
+      {
+        cmd: `gnome-screenshot -f "${outputPath}"`,
+        check: 'which gnome-screenshot'
+      },
+      // Método 2: spectacle (ambiente KDE)
+      {
+        cmd: `spectacle -bn -o "${outputPath}"`,
+        check: 'which spectacle'
+      },
+      // Método 3: scrot (ferramenta genérica)
+      {
+        cmd: `scrot -z "${outputPath}"`,
+        check: 'which scrot'
+      },
+      // Método 4: import do ImageMagick
+      {
+        cmd: `import -window root "${outputPath}"`,
+        check: 'which import'
+      },
+      // Método 5: xwd + convert
+      {
+        cmd: `xwd -root | convert xwd:- "${outputPath}"`,
+        check: 'which xwd && which convert'
       }
-    } catch (gnomeError) {
-      console.log("gnome-screenshot falhou, tentando método alternativo");
+    ];
+
+    for (const method of captureCommands) {
+      try {
+        // Verifica se o comando existe
+        execSync(method.check, { stdio: 'ignore', timeout: 1000 });
+
+        // Executa o comando de captura
+        console.log(`Tentando captura com: ${method.cmd}`);
+        execSync(method.cmd, { timeout: 5000 });
+
+        // Verifica se o arquivo foi criado
+        if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+          console.log(`Screenshot ${screenshotNumber} capturado com sucesso usando ${method.cmd}`);
+          return { path: outputPath };
+        }
+      } catch (methodError) {
+        console.log(`Método de captura falhou: ${method.cmd}`, methodError.message);
+      }
     }
 
+    // Se todos os métodos nativos falharem, usa o método genérico do Electron
+    console.log("Todos os métodos nativos de captura falharam, usando método Electron");
     return await captureGenericScreenArea(screenshotNumber);
+
   } catch (error) {
     console.error("Erro ao capturar tela no Linux:", error);
     return await captureGenericScreenArea(screenshotNumber);
