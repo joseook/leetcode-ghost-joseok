@@ -16,11 +16,17 @@ function isWSLEnvironment() {
 
 contextBridge.exposeInMainWorld('electron', {
   platform: process.platform,
-  appVersion: version,
-  isWSL: isWSLEnvironment(),
   isWindows: process.platform === 'win32',
   isLinux: process.platform === 'linux',
   isMac: process.platform === 'darwin',
+  linuxDetection: {
+    isWayland: process.env.XDG_SESSION_TYPE === 'wayland',
+    isX11: process.env.XDG_SESSION_TYPE === 'x11' || !process.env.XDG_SESSION_TYPE,
+    xdgSessionType: process.env.XDG_SESSION_TYPE || 'unknown',
+    display: process.env.DISPLAY || 'unknown'
+  },
+  isWSL: false,
+  appVersion: version,
 
   captureScreen: () => ipcRenderer.invoke('capture-screen'),
   captureScreen2: () => ipcRenderer.invoke('capture-screen2'),

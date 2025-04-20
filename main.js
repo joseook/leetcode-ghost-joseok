@@ -222,38 +222,34 @@ function applyAdvancedGhostMode(mainWindow) {
     return true;
   } else if (isLinux) {
     try {
+      // Configurações básicas do Electron
       mainWindow.setSkipTaskbar(true);
       mainWindow.setAlwaysOnTop(true, 'pop-up-menu');
       mainWindow.setMenuBarVisibility(false);
       mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
       mainWindow.setContentProtection(true);
-
-      // Configurações adicionais para aumentar o efeito ghost no Linux
       mainWindow.setOpacity(0.99);
 
-      // Adicionar configurações específicas para evitar captura
-      mainWindow.webContents.setBackgroundThrottling(false);
-
-      // Tentar usar xprop para configurar propriedades X11 quando disponível
+      // Usar o helper nativo para Linux
       try {
-        const windowId = mainWindow.id;
-        const { exec } = require('child_process');
+        const { linuxSetWindowAttributes, checkLinuxDependencies } = require('./src/linuxGhostHelper');
 
-        // Executar xprop para definir propriedades que impedem captura
-        exec(`xprop -id $(xwininfo -root -children | grep ${windowId} | grep -o "0x[0-9a-f]*") -f _NET_WM_WINDOW_OPACITY 32c -set _NET_WM_WINDOW_OPACITY 0xfffeffff`, (error) => {
-          if (error) {
-            console.log('Falha ao aplicar xprop para opacidade:', error);
-          } else {
-            console.log('Aplicadas propriedades X11 adicionais para modo ghost');
-          }
-        });
+        // Verificar dependências
+        const dependenciesOk = checkLinuxDependencies();
+        if (!dependenciesOk) {
+          console.log('Algumas dependências de sistema estão faltando para o modo ghost avançado');
+        }
 
-        // Configurar outras propriedades X11 que podem ajudar a evitar captura
-        exec(`xprop -id $(xwininfo -root -children | grep ${windowId} | grep -o "0x[0-9a-f]*") -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_HIDDEN`, (error) => {
-          if (!error) console.log('Aplicado estado oculto X11');
-        });
-      } catch (xpropError) {
-        console.error('Erro ao aplicar configurações X11:', xpropError);
+        // Aplicar configurações avançadas de X11
+        linuxSetWindowAttributes(mainWindow)
+          .then(result => {
+            console.log('Configurações X11 avançadas aplicadas:', result);
+          })
+          .catch(err => {
+            console.error('Erro ao aplicar configurações X11:', err);
+          });
+      } catch (helperError) {
+        console.error('Erro ao carregar ou executar linuxGhostHelper:', helperError);
       }
 
       console.log('Modo ghost configurado para Linux');
@@ -454,6 +450,22 @@ if (isLinux) {
   app.commandLine.appendSwitch('disable-dev-shm-usage');
   app.commandLine.appendSwitch('wm-window-animations-disabled');
   app.commandLine.appendSwitch('disable-frame-rate-limit');
+  app.commandLine.appendSwitch('in-process-gpu');
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-direct-composition');
+  app.commandLine.appendSwitch('disable-capture-promotions');
+
+  // Verificar e instalar pacotes necessários
+  try {
+    const { execSync } = require('child_process');
+    execSync('which xprop > /dev/null || which apt-get > /dev/null && sudo apt-get update && sudo apt-get install -y x11-utils xdotool libx11-dev', {
+      stdio: 'ignore',
+      timeout: 3000
+    });
+  } catch (e) {
+    console.log('Falha ao verificar/instalar dependências. O ghost-mode pode ter funcionalidade limitada.');
+  }
+
   app.disableHardwareAcceleration();
 }
 
