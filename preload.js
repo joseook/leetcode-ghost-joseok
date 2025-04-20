@@ -50,5 +50,6 @@ contextBridge.exposeInMainWorld('electron', {
   onToggleWindowDrag: (callback) => ipcRenderer.on('toggle-window-drag', callback),
   onCheckGhostMode: (callback) => ipcRenderer.on('check-ghost-mode', callback),
   onShortcutRegistrationFailed: (callback) => ipcRenderer.on('shortcut-registration-failed', callback),
+  onWslDetected: (callback) => ipcRenderer.on('wsl-detected', callback),
 });
 

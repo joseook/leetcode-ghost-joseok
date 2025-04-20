@@ -109,15 +109,54 @@ function checkAndInstallDependencies() {
   });
 }
 
+// Função aprimorada para detectar corretamente WSL
 async function isRunningInWSL() {
-  if (process.platform !== 'linux') return false;
+  if (process.platform !== 'linux') {
+    return false;
+  }
 
   try {
-    const { readFile } = require('fs/promises');
-    const data = await readFile('/proc/version', 'utf8');
-    return data.toLowerCase().includes('microsoft') || data.toLowerCase().includes('wsl');
+    // Métodos mais precisos para detecção de WSL
+    // 1. Verificar o /proc/version
+    const procVersion = fs.readFileSync('/proc/version', 'utf8').toLowerCase();
+
+    // 2. Verificar o conteúdo do /proc/sys/kernel/osrelease
+    let osRelease = '';
+    try {
+      osRelease = fs.readFileSync('/proc/sys/kernel/osrelease', 'utf8').toLowerCase();
+    } catch (e) {
+      // Se não conseguir ler, ignora
+    }
+
+    // 3. Verificar variáveis de ambiente específicas do WSL
+    const hasWslEnv = process.env.WSL_DISTRO_NAME || process.env.WSLENV;
+
+    // 4. Verificar a existência de diretórios específicos do WSL
+    let hasWslInterop = false;
+    try {
+      hasWslInterop = fs.existsSync('/run/WSL') || fs.existsSync('/mnt/wsl');
+    } catch (e) {
+      // Se não conseguir verificar, ignora
+    }
+
+    // Para ser considerado WSL, precisa ter palavras-chave específicas ou combinações delas
+    const isWsl = (
+      (procVersion.includes('microsoft') || procVersion.includes('wsl')) ||
+      (osRelease.includes('microsoft') || osRelease.includes('wsl')) ||
+      (hasWslEnv) ||
+      (hasWslInterop)
+    );
+
+    console.log('Detecção de ambiente:');
+    console.log('- /proc/version:', procVersion.includes('microsoft') || procVersion.includes('wsl'));
+    console.log('- osRelease:', osRelease.includes('microsoft') || osRelease.includes('wsl'));
+    console.log('- Variáveis WSL:', !!hasWslEnv);
+    console.log('- Diretórios WSL:', hasWslInterop);
+    console.log('Resultado final WSL:', isWsl);
+
+    return isWsl;
   } catch (error) {
-    console.error('Erro ao verificar WSL:', error);
+    console.error('Erro ao detectar WSL:', error.message);
     return false;
   }
 }
@@ -215,11 +254,8 @@ function applyAdvancedGhostMode(mainWindow) {
       return false;
     }
   } else if (isWSL) {
-    console.log('Executando no WSL, aplicando modo ghost básico');
-    mainWindow.setContentProtection(true);
-    mainWindow.setSkipTaskbar(true);
-    mainWindow.setAlwaysOnTop(true, 'screen-saver');
-    return true;
+    console.log('Executando no WSL, aplicando modo ghost específico para WSL');
+    return applyWSLGhostMode(mainWindow);
   } else if (isLinux) {
     try {
       // Configurações básicas do Electron
@@ -563,10 +599,25 @@ if (isLinux) {
 }
 
 app.whenReady().then(async () => {
+  // Detecção de ambiente melhorada
   isWSL = await isRunningInWSL();
+
+  // Exibir informações detalhadas sobre o ambiente
+  console.log('=== Informações do Ambiente ===');
+  console.log('Platform:', process.platform);
+  console.log('WSL detectado:', isWSL);
+  console.log('Versão do Node:', process.version);
+  console.log('Versão do Electron:', process.versions.electron);
+  console.log('Variáveis de ambiente:');
+  console.log('- XDG_SESSION_TYPE:', process.env.XDG_SESSION_TYPE || 'não definido');
+  console.log('- DISPLAY:', process.env.DISPLAY || 'não definido');
+  console.log('- WAYLAND_DISPLAY:', process.env.WAYLAND_DISPLAY || 'não definido');
+
   if (isWSL) {
     console.log('Detectado ambiente WSL - aplicando configurações específicas');
     configureWSLEnvironment();
+  } else if (isLinux) {
+    console.log('Detectado ambiente Linux nativo');
   }
 
   splashWindow = createSplashWindow();
@@ -912,3 +963,44 @@ ipcMain.handle('remove-screenshot', async (event, screenshotNumber) => {
     throw error;
   }
 });
+
+// Função para aplicar configurações ghost específicas para WSL
+function applyWSLGhostMode(mainWindow) {
+  try {
+    mainWindow.setContentProtection(true);
+    mainWindow.setAlwaysOnTop(true, 'screen-saver');
+    mainWindow.setSkipTaskbar(true);
+    mainWindow.setOpacity(0.99);
+
+    // Tenta métodos adicionais para o WSL
+    try {
+      // Carregar helper do Linux
+      const { linuxSetWindowAttributes } = require('./src/linuxGhostHelper');
+
+      // Aplicar técnicas específicas para o Linux
+      linuxSetWindowAttributes(mainWindow)
+        .then(result => {
+          console.log('Configurações avançadas WSL aplicadas:', result);
+        })
+        .catch(err => {
+          console.error('Erro ao aplicar configurações avançadas WSL:', err);
+        });
+
+      // Adicionar mensagem para ajudar o usuário
+      setTimeout(() => {
+        if (mainWindow) {
+          mainWindow.webContents.send('wsl-detected', {
+            message: 'Ambiente WSL detectado. Algumas funções podem ter limitações.'
+          });
+        }
+      }, 3000);
+    } catch (helperError) {
+      console.error('Erro ao carregar helper do Linux para WSL:', helperError);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao aplicar configurações WSL:', error);
+    return false;
+  }
+}

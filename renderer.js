@@ -645,3 +645,47 @@ window.electron?.onShortcutRegistrationFailed?.(async (event, { failed, register
         console.error("Erro ao processar notificação de atalhos:", error);
     }
 });
+
+// Adicionar um ouvinte para notificações específicas do WSL
+window.electron?.onWslDetected?.(async (event, { message }) => {
+    try {
+        // Adicionar mensagem ao log
+        document.getElementById("log-content").innerHTML +=
+            `<br> [SYSTEM] ${message}`;
+
+        // Atualizar informações de sistema
+        const platformInfo = await window.electron?.testGhostMode?.() || {
+            platform: window.electron?.platform || 'unknown',
+            isWindows: window.electron?.isWindows || false,
+            isLinux: window.electron?.isLinux || false,
+            isMac: window.electron?.isMac || false
+        };
+
+        // Alertar o usuário de forma mais visível com um popup temporário
+        const alertDiv = document.createElement('div');
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '10px';
+        alertDiv.style.left = '50%';
+        alertDiv.style.transform = 'translateX(-50%)';
+        alertDiv.style.backgroundColor = '#333';
+        alertDiv.style.color = '#ddd';
+        alertDiv.style.padding = '10px 20px';
+        alertDiv.style.borderRadius = '5px';
+        alertDiv.style.boxShadow = '0 2px 10px rgba(0,0,0,0.5)';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.textAlign = 'center';
+        alertDiv.style.fontSize = '14px';
+        alertDiv.innerHTML = `⚠️ ${message} Algumas características podem ser limitadas.`;
+
+        document.body.appendChild(alertDiv);
+
+        // Remover após 10 segundos
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transition = 'opacity 1s';
+            setTimeout(() => alertDiv.remove(), 1000);
+        }, 10000);
+    } catch (error) {
+        console.error("Erro ao processar notificação WSL:", error);
+    }
+});
