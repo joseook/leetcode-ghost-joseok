@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron main.js",
+    "start": "electron --no-sandbox main.js",
     "dev": "electron main.js",
     "wsl": "./wsl-launcher.sh",
     "postinstall": "electron-builder install-app-deps && npm install ffi-napi ref-napi --no-save",

@@ -228,7 +228,33 @@ function applyAdvancedGhostMode(mainWindow) {
       mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
       mainWindow.setContentProtection(true);
 
+      // Configurações adicionais para aumentar o efeito ghost no Linux
       mainWindow.setOpacity(0.99);
+
+      // Adicionar configurações específicas para evitar captura
+      mainWindow.webContents.setBackgroundThrottling(false);
+
+      // Tentar usar xprop para configurar propriedades X11 quando disponível
+      try {
+        const windowId = mainWindow.id;
+        const { exec } = require('child_process');
+
+        // Executar xprop para definir propriedades que impedem captura
+        exec(`xprop -id $(xwininfo -root -children | grep ${windowId} | grep -o "0x[0-9a-f]*") -f _NET_WM_WINDOW_OPACITY 32c -set _NET_WM_WINDOW_OPACITY 0xfffeffff`, (error) => {
+          if (error) {
+            console.log('Falha ao aplicar xprop para opacidade:', error);
+          } else {
+            console.log('Aplicadas propriedades X11 adicionais para modo ghost');
+          }
+        });
+
+        // Configurar outras propriedades X11 que podem ajudar a evitar captura
+        exec(`xprop -id $(xwininfo -root -children | grep ${windowId} | grep -o "0x[0-9a-f]*") -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_HIDDEN`, (error) => {
+          if (!error) console.log('Aplicado estado oculto X11');
+        });
+      } catch (xpropError) {
+        console.error('Erro ao aplicar configurações X11:', xpropError);
+      }
 
       console.log('Modo ghost configurado para Linux');
       return true;
@@ -424,6 +450,10 @@ if (isLinux) {
   app.commandLine.appendSwitch('disable-gpu-compositing');
   app.commandLine.appendSwitch('enable-transparent-visuals');
   app.commandLine.appendSwitch('disable-software-rasterizer');
+  app.commandLine.appendSwitch('enable-features', 'OverlayScrollbar');
+  app.commandLine.appendSwitch('disable-dev-shm-usage');
+  app.commandLine.appendSwitch('wm-window-animations-disabled');
+  app.commandLine.appendSwitch('disable-frame-rate-limit');
   app.disableHardwareAcceleration();
 }
 
