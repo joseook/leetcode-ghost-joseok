@@ -100,8 +100,8 @@ async function applyX11Attributes(window) {
       // Define a janela como tipo "utility" para reduzir a visibilidade
       `xprop -id ${windowId} -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_UTILITY,_NET_WM_WINDOW_TYPE_NOTIFICATION`,
 
-      // Configura propriedades avançadas
-      `xprop -id ${windowId} -f _MOTIF_WM_HINTS 32c -set _MOTIF_WM_HINTS 0x2, 0x0, 0x1, 0x0, 0x0`,
+      // Configura propriedades avançadas - corrigindo formato para evitar erros
+      `xprop -id ${windowId} -f _MOTIF_WM_HINTS 32c -set _MOTIF_WM_HINTS 0x2, 0x0, 0x0, 0x0, 0x0`,
 
       // Configura como não-capturável (funciona em alguns compositors)
       `xprop -id ${windowId} -f _NET_WM_BYPASS_COMPOSITOR 32c -set _NET_WM_BYPASS_COMPOSITOR 1`,

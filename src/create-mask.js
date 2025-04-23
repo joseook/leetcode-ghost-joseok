@@ -71,6 +71,15 @@ class LinuxWindowMask {
       const output = await this.execPromise(`bash "${scriptPath}"`);
       console.log('Saída do script de máscara:', output);
 
+      // Extrair ID da máscara do output
+      const maskId = this.extractMaskId(output);
+      if (maskId) {
+        this.maskWindowIds.push(maskId);
+
+        // Aplicar atributos X11 avançados
+        await this.applyAdvancedMaskAttributes(maskId);
+      }
+
       // Limpar arquivo temporário
       try { fs.unlinkSync(scriptPath); } catch (e) { }
 
@@ -138,13 +147,19 @@ class LinuxWindowMask {
 WINDOW_ID=$(xdotool selectwindow)
 
 # Configurar janela como tipo especial (utility)
-xprop -id $WINDOW_ID -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_UTILITY
+xprop -id $WINDOW_ID -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_UTILITY,_NET_WM_WINDOW_TYPE_DND
 
 # Configurar para ficar acima de todas as outras
-xprop -id $WINDOW_ID -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_ABOVE
+xprop -id $WINDOW_ID -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_ABOVE,_NET_WM_STATE_FOCUSED
 
-# Deixar transparente mas bloqueando capturas
-xprop -id $WINDOW_ID -f _NET_WM_WINDOW_OPACITY 32c -set _NET_WM_WINDOW_OPACITY 0xfffeffff
+# Aplicar configurações anti-captura adicionais
+xprop -id $WINDOW_ID -f _NET_WM_BYPASS_COMPOSITOR 32c -set _NET_WM_BYPASS_COMPOSITOR 1
+xprop -id $WINDOW_ID -f _COMPIZ_WM_WINDOW_BLUR 32c -set _COMPIZ_WM_WINDOW_BLUR 1
+xprop -id $WINDOW_ID -f _NET_WM_SYNC_REQUEST_COUNTER 32c -set _NET_WM_SYNC_REQUEST_COUNTER 0x0
+
+# Aplicar bits de configuração específicos para bloqueio de captura
+# Valor especial 0xfffffffd - conhecido por ajudar a bloquear capturas em alguns compositors
+xprop -id $WINDOW_ID -f _NET_WM_WINDOW_OPACITY 32c -set _NET_WM_WINDOW_OPACITY 0xfffffffd
 
 echo "ID da janela de máscara: $WINDOW_ID"
 `;
@@ -169,6 +184,57 @@ echo "ID da janela de máscara: $WINDOW_ID"
         resolve(stdout.trim());
       });
     });
+  }
+
+  // Extrair ID da máscara do output
+  extractMaskId(output) {
+    const match = output.match(/ID da janela de máscara:\s*(\d+)/);
+    return match ? match[1] : null;
+  }
+
+  // Aplicar atributos X11 avançados para a máscara
+  async applyAdvancedMaskAttributes(maskId) {
+    if (!maskId) return false;
+
+    try {
+      // Lista de comandos avançados para bloquear capturas de tela
+      const commands = [
+        // Configurar tipo específico para evitar captura
+        `xprop -id ${maskId} -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_DOCK,_NET_WM_WINDOW_TYPE_NOTIFICATION,_NET_WM_WINDOW_TYPE_DROPDOWN_MENU`,
+
+        // Configurar estado para ficar acima
+        `xprop -id ${maskId} -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_ABOVE,_NET_WM_STATE_FOCUSED,_NET_WM_STATE_MODAL`,
+
+        // Fazer compositing especial
+        `xprop -id ${maskId} -f _NET_WM_BYPASS_COMPOSITOR 32c -set _NET_WM_BYPASS_COMPOSITOR 2`,
+
+        // Definir opacidade especial conhecida por interferir com gravadores
+        `xprop -id ${maskId} -f _NET_WM_WINDOW_OPACITY 32c -set _NET_WM_WINDOW_OPACITY 0xfffffffc`,
+
+        // Adicionar flag específica para o mutter/gnome-shell
+        `xprop -id ${maskId} -f _MUTTER_HINTS 32c -set _MUTTER_HINTS 0x1`,
+
+        // Configuração adicional para evitar detecção
+        `xprop -id ${maskId} -f _COMPIZ_WM_WINDOW_BLUR 32c -set _COMPIZ_WM_WINDOW_BLUR 2`,
+
+        // Configurar como janela para ignorar via X11
+        `xprop -id ${maskId} -f _X11_NO_SNOOP 32c -set _X11_NO_SNOOP 1 2>/dev/null`
+      ];
+
+      // Executar os comandos sequencialmente
+      for (const cmd of commands) {
+        try {
+          await this.execPromise(cmd);
+        } catch (err) {
+          // Ignorar erros individuais de comandos
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erro ao aplicar atributos avançados à máscara:', error);
+      return false;
+    }
   }
 }
 
